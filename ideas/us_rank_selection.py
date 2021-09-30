@@ -30,6 +30,20 @@ input_conditions = {"face_down_dis_up": [("FACE", 2, "DOWN"), ("DIS", 1, "UP")],
 
 
 def rank_selection(universe_path, result_path, col_match_dict, conditions, entry_cnt, today_date, today_time):
+    """
+    with given conditions, iterate rank-selection
+    face, disparity, pbr, amt are populated from finviz universe
+    final selections saved as json file
+
+    :param universe_path:
+    :param result_path:
+    :param col_match_dict:
+    :param conditions:
+    :param entry_cnt:
+    :param today_date:
+    :param today_time:
+    :return:
+    """
     def selection(dt, col_name, multiple, entry_count, direction="DOWN"):
         dt = dt.copy()
         temp = dt.sort_values(by=col_name)

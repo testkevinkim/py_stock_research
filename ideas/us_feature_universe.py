@@ -9,6 +9,14 @@ input_root_path = "/Users/KXK2ZO/minor_research/R/jupyter_R/us_study/data"
 
 
 def get_us_features(root_path, page_max=None):
+    """
+    from finviz, download universe with features
+    downloaded universe would be saved as json file in main operation
+
+    :param root_path:
+    :param page_max:
+    :return:
+    """
     start_time = datetime.utcnow()
     universe = build_universe(finviz_url_template, finviz_numeric_cols, page_max)
     logging.info("universe size before bad stocks = {}".format(len(universe.Ticker.unique())))

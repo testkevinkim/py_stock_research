@@ -10,11 +10,21 @@ import os
 import logging
 import pandas as pd
 
-logger = utils.init_logger(config.log_path)
 email_cred = utils.read_json_to_dict(config.email_path)
 
 
 def do_entry(entry_count, universe_path, entry_path, entry_date, entry_time, universe_max_page=None):
+    """
+    every day, find new rank-selection result from new universe result which is populated from finviz
+
+    :param entry_count:
+    :param universe_path:
+    :param entry_path:
+    :param entry_date:
+    :param entry_time:
+    :param universe_max_page:
+    :return:
+    """
     # entry at close
     entry_universe = us_feature_universe.build_universe(us_feature_universe.finviz_url_template,
                                                         us_feature_universe.finviz_numeric_cols,
@@ -29,6 +39,18 @@ def do_entry(entry_count, universe_path, entry_path, entry_date, entry_time, uni
 
 
 def do_exit(entry, start_date, end_date, exit_ndays, fee_perc, history_path):
+    """
+    download history of entry universe from yahoo finance
+    calculated gain
+
+    :param entry:
+    :param start_date:
+    :param end_date:
+    :param exit_ndays:
+    :param fee_perc:
+    :param history_path:
+    :return:
+    """
     report = None
     min_entry_date_count = exit_ndays + 10
     entry_date_count = len(entry.DATE.unique())
@@ -46,6 +68,15 @@ def do_exit(entry, start_date, end_date, exit_ndays, fee_perc, history_path):
 
 
 def main(override=False, universe_max_page=None):
+    """
+    do entry -> do exit
+    build aggregation report from exit result
+    then send performance aggregation (CAGR, MDD, etc) via email
+
+    :param override:
+    :param universe_max_page:
+    :return:
+    """
     if utils.is_market_open(override, tz_name=utils.tz_dict["US"], ex_name="nyse"):
         logging.info("main start - market is open today")
         # entry
@@ -125,5 +156,6 @@ def test_do_exit():
 
 
 if __name__ == "__main__":
+    logger = utils.init_logger(config.log_path)
     main()
     logging.info("main finished")
