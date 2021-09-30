@@ -1,0 +1,7 @@
+30 8 * * * /root/anaconda3/bin/python /home/xing_instruction/common/main.py --task exit > /home/kr_instruction/cron.log 2>&1
+00 13 * * * /root/anaconda3/bin/python /home/xing_instruction/common/main.py --task entry > /home/kr_instruction/cron.log 2>&1
+30 11 * * * /root/anaconda3/bin/python /home/poc_platform/packages/market/kr/main.py --task entry > /home/poc_platform_result/kr/cron.log 2>&1
+30 7 * * * /root/anaconda3/bin/python /home/poc_platform/packages/market/kr/main.py --task exit > /home/poc_platform_result/kr/cron.log 2>&1
+5 9 1 * * /root/anaconda3/bin/python /home/us_bps_growth/ops/main.py > /home/us_bps_growth_result/cron.log 2>&1
+0 5 * * * /root/anaconda3/bin/python /home/us_bps_growth/kr_pref_reg_ratio_zscore/main.py > /home/us_bps_growth_result/kr_pref_reg_cron.log 2>&1
+15 6 * * * /root/anaconda3/bin/python /home/py_stock_research/main/us_main.py > /home/py_stock_research_test/cron.log 2>&1
