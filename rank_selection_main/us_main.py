@@ -2,7 +2,7 @@
 # entry: ideas/us_feature_universe.py -> ideas/us_rank_selection.py
 # evaluation -> report -> email
 import feed.us_yahoo_feed
-from main import utils, config
+from rank_selection_main import utils, config
 from ideas import us_feature_universe, us_rank_selection
 from feed import us_yahoo_history
 from evaluation import us_gain_report
