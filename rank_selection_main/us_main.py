@@ -122,6 +122,11 @@ def main(override=False, universe_max_page=None):
                                 "weekend or holiday")
 
 
+def test_main():
+    main(override=True, universe_max_page=20)
+    logging.info("main test finished")
+
+
 # build report
 def test_do_entry():
     test_max_page = 20
