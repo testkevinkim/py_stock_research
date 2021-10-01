@@ -81,7 +81,7 @@ def get_adj_unadj_day_price(tickers, datacount):
                             unadj[["TICKER", "DATE", "CLOSE"]].rename(columns={"CLOSE": "UNADJCLOSE"}),
                             on=["TICKER", "DATE"], how="inner")
             prices.append(both)
-            logging.info("{} history download - adj, unadj both".format(t))
+            logging.info(" ticker = {} history download - adj, unadj both".format(t))
         except Exception as e:
             logging.info("{} skipped because of {}".format(t, str(e)))
             failed.append(t)
