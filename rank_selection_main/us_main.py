@@ -88,8 +88,11 @@ def main(override=False, universe_max_page=None):
     """
     if utils.is_market_open(override, tz_name=utils.tz_dict["US"], ex_name="nyse"):
         logging.info("main start - market is open today")
+        today_date = utils.local_date(utils.tz_dict["US"])
+        today_time = utils.local_time(utils.tz_dict["US"])
         # entry
-        today_candidates = do_entry(config.entry_count, config.universe_path, config.entry_path, universe_max_page)
+        today_candidates = do_entry(config.entry_count, config.universe_path, config.entry_path,
+                                    today_date, today_time, universe_max_page)
         # report
         whole_entry = pd.read_json(config.entry_path, convert_dates=False)
         logging.info("entry nrow= {}".format(str(whole_entry.shape[0])))
