@@ -1,3 +1,5 @@
+import time
+
 import pandas as pd
 import requests
 import json
@@ -70,10 +72,10 @@ def test_get_price_from_daum():
     logging.info(day_unadj[day_unadj["DATE"].map(lambda x: pd.to_datetime(x, format="%Y-%m-%d").month in [2, 3, 4])])
 
 
-def get_adj_unadj_day_price(tickers, datacount):
+def get_adj_unadj_day_price(tickers, datacount, sleep_time_every_100=10):
     failed = []
     prices = []
-    for t in tickers:
+    for i, t in enumerate(tickers):
         try:
             adj = get_price_from_daum(t, datacount, True, "days").drop(columns=["ADJ"])
             unadj = get_price_from_daum(t, datacount, False, "days")
@@ -82,6 +84,8 @@ def get_adj_unadj_day_price(tickers, datacount):
                             on=["TICKER", "DATE"], how="inner")
             prices.append(both)
             logging.info(" ticker = {} history download - adj, unadj both".format(t))
+            if i % 100 == 99:
+                time.sleep(sleep_time_every_100)
         except Exception as e:
             logging.info("{} skipped because of {}".format(t, str(e)))
             failed.append(t)
