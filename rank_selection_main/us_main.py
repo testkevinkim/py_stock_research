@@ -104,7 +104,7 @@ def main(override=False, universe_max_page=None):
         logging.info("start date: {}, end date: {} in history download".format(start_date, end_date))
         report_raw = do_exit(entry=whole_entry, start_date=start_date, end_date=end_date,
                              exit_ndays=config.exit_ndays,
-                             fee_perc=config.fee_perc)
+                             fee_perc=config.fee_perc, history_path=config.history_path)
         if report_raw:
             report = us_gain_report.agg_performance(report_raw)
             if not override:
