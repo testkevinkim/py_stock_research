@@ -83,7 +83,8 @@ def get_adj_unadj_day_price(tickers, datacount, sleep_time_every_100=10):
                             unadj[["TICKER", "DATE", "CLOSE"]].rename(columns={"CLOSE": "UNADJCLOSE"}),
                             on=["TICKER", "DATE"], how="inner")
             prices.append(both)
-            logging.info(" ticker = {} history download - adj, unadj both".format(t))
+            logging.info("{}, {}% ticker = {} history download - adj, unadj both".format(str(i), str(round(
+                i / len(tickers) * 100, 2)), t))
             if i % 100 == 99:
                 time.sleep(sleep_time_every_100)
         except Exception as e:
