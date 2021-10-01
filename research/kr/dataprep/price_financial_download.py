@@ -23,7 +23,7 @@ universe_path = os.path.join(root_path, "universe.parquet")
 price_path = os.path.join(root_path, "price.parquet")
 financials_path = os.path.join(root_path, "financials.parquet")
 
-max_page = 3
+max_page = None
 price_datacount = 2000  # days
 if max_page:
     logging.info("current universe max page = {}, this should be None for all universe".format(str(max_page)))
@@ -47,3 +47,4 @@ min_ticker_count = min(len(universe.TICKER.unique()), len(prices.TICKER.unique()
 utils.send_status_email(
     "kr - universe, shares, price, financials downloaded - total ticker count ={}".format(str(min_ticker_count)),
     cred_dict=utils.read_json_to_dict(rank_selection_main_config.email_path))
+logging.info("email sent")
