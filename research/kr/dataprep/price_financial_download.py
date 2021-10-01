@@ -1,6 +1,14 @@
 # universe: ticker, shares, marketcap = shares * adj price
 # price : adj and unadj - from universe
 # financial - from universe
+import sys
+import platform
+
+if "darwin" in platform.system().lower():
+    # mac
+    sys.path.append("/Users/KXK2ZO/py_stock_research")
+else:  # linux
+    sys.path.append("/home/py_stock_research")
 
 import pandas as pd
 import logging
