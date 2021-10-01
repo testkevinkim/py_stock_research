@@ -116,7 +116,7 @@ def main(override=False, universe_max_page=None):
             logging.info("entry is too short to generate report")
             skip_report_subject = "us_rank_selection ideas: entry is too short to generate report - {} days"
             utils.send_status_email(skip_report_subject.format(str(len(whole_entry_dates))), email_cred,
-                                    "weekend or holiday")
+                                    "should be more than {} days".format(str(config.exit_ndays + 10)))
     else:
         utils.send_status_email("us_rank_selection ideas skipped - weekend or holiday", email_cred,
                                 "weekend or holiday")
