@@ -1,3 +1,12 @@
+import sys
+import platform
+
+if "darwin" in platform.system().lower():
+    # mac
+    sys.path.append("/Users/KXK2ZO/py_stock_research")
+else:  # linux
+    sys.path.append("/home/py_stock_research")
+
 # check market open
 # entry: ideas/us_feature_universe.py -> ideas/us_rank_selection.py
 # evaluation -> report -> email
