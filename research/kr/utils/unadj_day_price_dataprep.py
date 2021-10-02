@@ -87,6 +87,7 @@ def get_adj_unadj_day_price(tickers, datacount, sleep_time_every_100=10):
                 i / len(tickers) * 100, 2)), t))
             if i % 100 == 99:
                 time.sleep(sleep_time_every_100)
+                logging.info("every 100 tickers, sleep during {} seconds".format(str(sleep_time_every_100)))
         except Exception as e:
             logging.info("{} skipped because of {}".format(t, str(e)))
             failed.append(t)
