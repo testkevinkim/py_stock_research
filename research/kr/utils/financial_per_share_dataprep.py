@@ -20,7 +20,7 @@ def get_per_share(ticker):
             return [0.0 if np.isnan(x) else x for x in raw]
 
         series = [_get_per_share(dfs[2], x) for x in col_loc]
-        pdf = pd.DataFrame(zip(series[0], series[1], series[2], period), columns=["eps", "bps", "dps", "year"])
+        pdf = pd.DataFrame(zip(series[0], series[1], series[2], period), columns=["EPS", "BPS", "DPS", "YEAR"])
         pdf["TICKER"] = ticker
     except:
         pdf = None
