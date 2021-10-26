@@ -10,7 +10,7 @@ else:  # linux
 
 override = False
 ex_name ="nyse"
-test_universe = ["FB", "AAPL", "MMM"]
+test_universe = None # ["FB", "AAPL", "MMM"]
 tz_name = "US/Eastern"
 log_path = os.path.join(root_path, "{}us_bid_ask_collect.log".format("test_" if override else ""))
 email_path = os.path.join(root_path, "gmail.json")
