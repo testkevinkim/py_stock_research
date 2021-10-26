@@ -42,7 +42,7 @@ def get_bid_ask(tickers, qt) -> pd.DataFrame:
 
 def get_feed(tickers) -> pd.DataFrame:
     feed_keys = ["bid", "ask", "bidSize", "askSize", "tradeable", "symbol",
-                 "marketState", "regularMarketPrice", "regularMarketVolume"]
+                 "marketState", "regularMarketPrice", "regularMarketVolume", "postMarketPrice"]
     feed = us_yahoo_feed.yahoo_feed(tickers, feed_keys)
     feed_df = pd.DataFrame.from_dict(feed)
     return feed_df

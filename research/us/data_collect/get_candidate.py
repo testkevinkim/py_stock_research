@@ -33,10 +33,13 @@ def calculate_price_drop(prices) -> pd.DataFrame:
     pre, post = sorted(list(prices.time.unique()))
     times_names = [(pre, "pre"), (post, "post")]
 
-    def _filter_rename(df, filter_time, new_name):
+    def _filter_rename(df, filter_time, new_name, post_market=True):
         subset = df.query("time == '{}'".format(filter_time))
         subset = subset.query("regularMarketVolume > 10000")
-        subset = subset.rename(columns={"regularMarketPrice": new_name})
+        if post_market:
+            subset = subset.rename(columns={"postMarketPrice": new_name})
+        else:
+            subset = subset.rename(columns={"regularMarketPrice": new_name})
         subset = subset[["symbol", new_name]]
         return subset
 
@@ -53,10 +56,9 @@ def capture_bid_ask(tickers, qt):
 
 
 def reduce_entry(entry, report_entry_cnt):
-    entry["price_down_rank"] = entry.groupby(["date"])["price_down"].rank()
-    entry["report_entry_cnt"] = report_entry_cnt
+    entry["price_down_rank"] = entry.groupby(["date"])["price_down"].rank(method="first")
     logging.info(("before apply report entry cnt filter,", entry.shape[0]))
-    entry = entry.query("price_down_rank <= report_entry_cnt")
+    entry = entry.query("price_down_rank <= {}".format(str(report_entry_cnt)))
     entry = entry.drop(columns=["report_entry_cnt", "price_down_rank"])
     logging.info(("after apply report entry cnt filter,", entry.shape[0]))
     return entry
