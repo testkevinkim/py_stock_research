@@ -25,6 +25,7 @@ def build_universe(given_universe=None):
 def capture_current_price(universe, time):
     price = bid_ask_collect.get_feed(universe)
     price["time"] = time
+    logging.info(("current_price", price.shape[0]))
     return price
 
 
@@ -69,6 +70,7 @@ def main(configs):
         logging.info(("universe size: ", len(new_universe)))
 
         utils.wait_until(configs.first_capture_time, configs.tz_name, configs.override)
+        logging.info("1st wait until finished")
         pre = capture_current_price(new_universe, utils.local_time(configs.tz_name))
         prices.append(pre)
 
@@ -76,9 +78,10 @@ def main(configs):
             utils.sleepby(1)
 
         utils.wait_until(configs.second_capture_time, configs.tz_name, configs.override)
+        logging.info("2nd wait until finished")
         post = capture_current_price(new_universe, utils.local_time(configs.tz_name))
         if config.override:
-            post["regularMarketPrice"] = post["regularMarketPrice"].map(lambda x: x*(1+random.uniform(-0.1, 0.1)))
+            post["regularMarketPrice"] = post["regularMarketPrice"].map(lambda x: x * (1 + random.uniform(-0.1, 0.1)))
         prices.append(post)
 
         price = pd.concat(prices, ignore_index=True)
@@ -147,6 +150,12 @@ def test_capture_current_price():
     actual = capture_current_price(given_universe, "test")
     logging.info(("price", actual.head().to_string()))
     assert len(actual.symbol.unique()) == len(given_universe)
+    all_universe = build_universe(None)
+    actual = capture_current_price(all_universe, "test")
+    assert actual.shape[0] > 100
+    logging.info(actual.dtypes)
+    logging.info(actual.head())
+    # python -m pytest research/us/data_collect/get_candidate.py::test_capture_current_price --log-cli-level=INFO
 
 
 def test_calculate_price_drop():
