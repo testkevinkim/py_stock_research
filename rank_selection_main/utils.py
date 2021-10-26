@@ -16,7 +16,6 @@ import urllib
 import requests
 import pandas as pd
 import numpy as np
-import robin_stocks as r
 import sys
 import copy
 
@@ -164,3 +163,46 @@ def init_logger(log_file_path: str):
                         filemode='a')  # append
     logger = logging.getLogger(__name__)
     return logger
+
+
+def wait_until(time_str, tz_name="Asia/Seoul", override=False):
+    if not override:
+        date_str = datetime.now(timezone(tz_name)).strftime("%Y-%m-%d")
+        end_datetime = timezone(tz_name).localize(
+            datetime.strptime(date_str + " " + time_str, "%Y-%m-%d %H:%M:%S"))
+        print("wait end datetime : {}".format(end_datetime))
+        while True:
+            nowtime = datetime.now(timezone(tz_name))
+            diff = (end_datetime - nowtime).total_seconds()
+            if diff < 0:
+                return "wait end at {}".format(
+                    nowtime.strftime(
+                        "%Y-%m-%d %H:%M:%S"))  # In case end_datetime was in past to begin with
+            time.sleep(diff / 2)
+            if diff <= 0.1:
+                return "wait end at {}".format(nowtime.strftime("%Y-%m-%d %H:%M:%S"))
+        pass
+    else:
+        pass
+
+
+def build_gain_report(entry_df, history_df, exit_ndays) -> pd.DataFrame:
+    """
+    # entry_df: DATE, TICKER, ENTRY_PRICE
+    # history_df: DATE, TICKER, OPEN
+
+    :param entry_df:
+    :param history_df:
+    :param exit_ndays:
+    :return:
+    """
+
+    dates = sorted(list(entry_df.DATE.unique()))
+    date_index = pd.DataFrame(zip(dates, range(len(dates))), columns=["DATE", "INDEX"])
+    entry_df = entry_df.merge(date_index, on="DATE", how="inner")
+    history_df = history_df.merge(date_index, on="DATE", how="inner")
+    history_df = history_df.rename(columns={"OPEN": "EXIT_OPEN", "DATE": "EXIT_DATE"})
+    history_df["INDEX"] = history_df["INDEX"].map(lambda x: x - exit_ndays)
+    entry_history = entry_df.merge(history_df, on=["TICKER", "INDEX"], how="inner")
+    entry_history["GAIN"] = entry_history["EXIT_OPEN"] / entry_history["ENTRY_PRICE"] - 1
+    return entry_history.groupby("DATE").agg(GM=("GAIN", "mean"), CNT=("TICKER", "count")).reset_index()
