@@ -8,7 +8,7 @@ if "darwin" in platform.system().lower():
 else:  # linux
     root_path = "/home/py_stock_research_test"
 
-override = True
+override = False
 ex_name ="nyse"
 test_universe = ["FB", "AAPL", "MMM"]
 tz_name = "US/Eastern"
