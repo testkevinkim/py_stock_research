@@ -59,7 +59,7 @@ def reduce_entry(entry, report_entry_cnt):
     entry["price_down_rank"] = entry.groupby(["date"])["price_down"].rank(method="first")
     logging.info(("before apply report entry cnt filter,", entry.shape[0]))
     entry = entry.query("price_down_rank <= {}".format(str(report_entry_cnt)))
-    entry = entry.drop(columns=["report_entry_cnt", "price_down_rank"])
+    entry = entry.drop(columns=["price_down_rank"])
     logging.info(("after apply report entry cnt filter,", entry.shape[0]))
     return entry
 
