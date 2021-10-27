@@ -95,13 +95,9 @@ def main(configs):
 
             logging.info(("candidates size: ", len(candidates)))
 
-            try:
-                qt = bid_ask_collect.init_qtrade(configs.yaml_token_path)
-                qt = bid_ask_collect.refresh_token(qt, configs.access_token_path)
-            except Exception as e:
-                logging.info(("questrade auth issue", str(e)))
-                utils.send_status_email("check questrade auth issue - regenerate access token from api hub",
-                                        configs.email_cred)
+
+            qt = bid_ask_collect.init_qtrade(configs.yaml_token_path)
+            qt = bid_ask_collect.refresh_token(qt, configs.access_token_path)
             bid_ask = capture_bid_ask(candidates, qt)
             bid_ask = bid_ask.query("askSize >= 1").query("bidSize >= 1")
             bid_ask_price_down = bid_ask.merge(calculated[["symbol", "price_down"]], on="symbol", how="inner")
@@ -132,6 +128,7 @@ def main(configs):
                     utils.send_email_with_df("us-bid-ask-collect: gain report", configs.email_cred, report)
                 else:
                     logging.info(("report not sent because report size = 0", report.shape[0]))
+                    utils.send_status_email("us-bid-ask-collect: entry is too short", configs.email_cred)
             else:
                 logging.info(("too short entry size, entry dates count = ", len(entry_dates)))
         else:
@@ -139,6 +136,8 @@ def main(configs):
             utils.send_status_email("us-bid-ask-collect: market closed or holiday", configs.email_cred)
     except Exception as e:
         logging.error(e, exc_info=True)
+        utils.send_status_email("check questrade auth issue - regenerate access token from api hub",
+                                configs.email_cred)
 
 
 def test_build_universe():
