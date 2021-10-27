@@ -12,7 +12,8 @@ import os
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 large_cap_universe_url = "https://markets.businessinsider.com/index/components/s&p_500?p={}"
-mid_cap_universe_url = "https://stockmarketmba.com/stocksinthespsmallcap600.php"
+small_cap_universe_url = "https://stockmarketmba.com/stocksinthespsmallcap600.php"
+mid_cap_universe_url = "https://stockmarketmba.com/sp400mostrecentearnings.php"
 
 
 def init_qtrade(yaml_token_path) -> Questrade:
@@ -60,13 +61,23 @@ def get_universe() -> [str]:
             time.sleep(0.2)
         else:
             next_page = 0  # stop
+    logging.info(("us large cap universe size = ", len(tickers)))
     # mid cap
+    tickers.extend(get_snp400())
+    logging.info(("us large + mid cap universe size = ", len(tickers)))
+    # small cap
     tickers.extend(get_snp600())
-    logging.info(("us universe size = ", len(tickers)))
-    return tickers
+    logging.info(("us large + mid + small cap universe size = ", len(tickers)))
+
+    return list(set(tickers))
 
 
 def get_snp600():
+    mid_text = get(small_cap_universe_url, headers=headers).text
+    return [x.upper() for x in list(pd.read_html(mid_text)[0].Symbol.unique())]
+
+
+def get_snp400():
     mid_text = get(mid_cap_universe_url, headers=headers).text
     return [x.upper() for x in list(pd.read_html(mid_text)[0].Symbol.unique())]
 
