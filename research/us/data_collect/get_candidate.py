@@ -65,77 +65,80 @@ def reduce_entry(entry, report_entry_cnt):
 
 
 def main(configs):
-    prices = []
-    if utils.is_market_open(configs.override, configs.tz_name, configs.ex_name):
-        # market open or override
-        new_universe = build_universe(configs.test_universe)
-        logging.info(("universe size: ", len(new_universe)))
+    try:
+        prices = []
+        if utils.is_market_open(configs.override, configs.tz_name, configs.ex_name):
+            # market open or override
+            new_universe = build_universe(configs.test_universe)
+            logging.info(("universe size: ", len(new_universe)))
 
-        utils.wait_until(configs.first_capture_time, configs.tz_name, configs.override)
-        logging.info("1st wait until finished")
-        pre = capture_current_price(new_universe, utils.local_time(configs.tz_name))
-        prices.append(pre)
+            utils.wait_until(configs.first_capture_time, configs.tz_name, configs.override)
+            logging.info("1st wait until finished")
+            pre = capture_current_price(new_universe, utils.local_time(configs.tz_name))
+            prices.append(pre)
 
-        if configs.override:
-            utils.sleepby(1)
+            if configs.override:
+                utils.sleepby(1)
 
-        utils.wait_until(configs.second_capture_time, configs.tz_name, configs.override)
-        logging.info("2nd wait until finished")
-        post = capture_current_price(new_universe, utils.local_time(configs.tz_name))
-        if config.override:
-            post["regularMarketPrice"] = post["regularMarketPrice"].map(lambda x: x * (1 + random.uniform(-0.1, 0.1)))
-        prices.append(post)
+            utils.wait_until(configs.second_capture_time, configs.tz_name, configs.override)
+            logging.info("2nd wait until finished")
+            post = capture_current_price(new_universe, utils.local_time(configs.tz_name))
+            if config.override:
+                post["regularMarketPrice"] = post["regularMarketPrice"].map(lambda x: x * (1 + random.uniform(-0.1, 0.1)))
+            prices.append(post)
 
-        price = pd.concat(prices, ignore_index=True)
-        calculated = calculate_price_drop(price)
-        calculated = calculated.sort_values(by="price_down")
-        candidates = list(calculated.head(configs.entry_cnt).symbol.unique())
-        # entry_cnt is large in order capture more bid/ask
+            price = pd.concat(prices, ignore_index=True)
+            calculated = calculate_price_drop(price)
+            calculated = calculated.sort_values(by="price_down")
+            candidates = list(calculated.head(configs.entry_cnt).symbol.unique())
+            # entry_cnt is large in order capture more bid/ask
 
-        logging.info(("candidates size: ", len(candidates)))
+            logging.info(("candidates size: ", len(candidates)))
 
-        try:
-            qt = bid_ask_collect.init_qtrade(configs.yaml_token_path)
-            qt = bid_ask_collect.refresh_token(qt, configs.access_token_path)
-        except Exception as e:
-            logging.info(("questrade auth issue", str(e)))
-            utils.send_status_email("check questrade auth issue - regenerate access token from api hub",
-                                    configs.email_cred)
-        bid_ask = capture_bid_ask(candidates, qt)
-        bid_ask = bid_ask.query("askSize >= 1").query("bidSize >= 1")
-        bid_ask_price_down = bid_ask.merge(calculated[["symbol", "price_down"]], on="symbol", how="inner")
-        bid_ask_price_down["ask_price_down"] = bid_ask_price_down["askPrice"]/bid_ask_price_down["lastTradePriceTrHrs"]-1
-        entry_pre = bid_ask_collect.save_entry(configs.entry_path, bid_ask_price_down)
-        entry = reduce_entry(entry_pre, configs.report_entry_cnt)  # to reduce entry size for report
-        logging.info(("entry dtypes", entry.dtypes))
+            try:
+                qt = bid_ask_collect.init_qtrade(configs.yaml_token_path)
+                qt = bid_ask_collect.refresh_token(qt, configs.access_token_path)
+            except Exception as e:
+                logging.info(("questrade auth issue", str(e)))
+                utils.send_status_email("check questrade auth issue - regenerate access token from api hub",
+                                        configs.email_cred)
+            bid_ask = capture_bid_ask(candidates, qt)
+            bid_ask = bid_ask.query("askSize >= 1").query("bidSize >= 1")
+            bid_ask_price_down = bid_ask.merge(calculated[["symbol", "price_down"]], on="symbol", how="inner")
+            bid_ask_price_down["ask_price_down"] = bid_ask_price_down["askPrice"]/bid_ask_price_down["lastTradePriceTrHrs"]-1
+            entry_pre = bid_ask_collect.save_entry(configs.entry_path, bid_ask_price_down)
+            entry = reduce_entry(entry_pre, configs.report_entry_cnt)  # to reduce entry size for report
+            logging.info(("entry dtypes", entry.dtypes))
 
-        # build gain report
-        entry_universe = list(entry.symbol.unique())
-        logging.info(("entry universe size = ", len(entry_universe)))
-        entry_dates = sorted(list(entry.date.unique()))
-        entry_start_date = entry_dates[0]
-        if len(entry_dates) >= 3:
-            history = us_yahoo_history.get_yahoo_history(entry_universe, entry_start_date,
-                                                         utils.local_date(configs.tz_name))
-            history_reduced = history[["TICKER", "DATE", "OPEN"]]
-            entry_reduced = entry[["symbol", "date", "askPrice"]]
-            entry_reduced = entry_reduced.rename(
-                columns={"symbol": "TICKER", "date": "DATE", "askPrice": "ENTRY_PRICE"})
-            report = utils.build_gain_report(entry_reduced, history_reduced, configs.exit_ndays)
-            logging.info("report built")
-            logging.info(report.head().to_string())
-            report.to_json(configs.report_path)
+            # build gain report
+            entry_universe = list(entry.symbol.unique())
+            logging.info(("entry universe size = ", len(entry_universe)))
+            entry_dates = sorted(list(entry.date.unique()))
+            entry_start_date = entry_dates[0]
+            if len(entry_dates) >= 3:
+                history = us_yahoo_history.get_yahoo_history(entry_universe, entry_start_date,
+                                                             utils.local_date(configs.tz_name))
+                history_reduced = history[["TICKER", "DATE", "OPEN"]]
+                entry_reduced = entry[["symbol", "date", "askPrice"]]
+                entry_reduced = entry_reduced.rename(
+                    columns={"symbol": "TICKER", "date": "DATE", "askPrice": "ENTRY_PRICE"})
+                report = utils.build_gain_report(entry_reduced, history_reduced, configs.exit_ndays)
+                logging.info("report built")
+                logging.info(report.head().to_string())
+                report.to_json(configs.report_path)
 
-            # send
-            if report.shape[0] > 0:
-                utils.send_email_with_df("us-bid-ask-collect: gain report", configs.email_cred, report)
+                # send
+                if report.shape[0] > 0:
+                    utils.send_email_with_df("us-bid-ask-collect: gain report", configs.email_cred, report)
+                else:
+                    logging.info(("report not sent because report size = 0", report.shape[0]))
             else:
-                logging.info(("report not sent because report size = 0", report.shape[0]))
+                logging.info(("too short entry size, entry dates count = ", len(entry_dates)))
         else:
-            logging.info(("too short entry size, entry dates count = ", len(entry_dates)))
-    else:
-        # close
-        utils.send_status_email("us-bid-ask-collect: market closed or holiday", configs.email_cred)
+            # close
+            utils.send_status_email("us-bid-ask-collect: market closed or holiday", configs.email_cred)
+    except Exception as e:
+        logging.error(e, exc_info=True)
 
 
 def test_build_universe():
