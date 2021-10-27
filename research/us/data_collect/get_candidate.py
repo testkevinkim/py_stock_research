@@ -104,7 +104,7 @@ def main(configs):
         bid_ask = capture_bid_ask(candidates, qt)
         bid_ask = bid_ask.query("askSize >= 1").query("bidSize >= 1")
         bid_ask_price_down = bid_ask.merge(calculated[["symbol", "price_down"]], on="symbol", how="inner")
-        bid_ask_price_down["ask_price_down"] = bid_ask_price_down["askPrice"]/bid_ask_price_down["lastTradePrice"]-1
+        bid_ask_price_down["ask_price_down"] = bid_ask_price_down["askPrice"]/bid_ask_price_down["lastTradePriceTrHrs"]-1
         entry_pre = bid_ask_collect.save_entry(configs.entry_path, bid_ask_price_down)
         entry = reduce_entry(entry_pre, configs.report_entry_cnt)  # to reduce entry size for report
         logging.info(("entry dtypes", entry.dtypes))
