@@ -56,7 +56,7 @@ def capture_bid_ask(tickers, qt):
 
 
 def reduce_entry(entry, report_entry_cnt):
-    entry["price_down_rank"] = entry.groupby(["date"])["price_down"].rank(method="first")
+    entry["price_down_rank"] = entry.groupby(["date"])["ask_price_down"].rank(method="first")
     logging.info(("before apply report entry cnt filter,", entry.shape[0]))
     entry = entry.query("price_down_rank <= {}".format(str(report_entry_cnt)))
     entry = entry.drop(columns=["price_down_rank"])
@@ -102,9 +102,9 @@ def main(configs):
             utils.send_status_email("check questrade auth issue - regenerate access token from api hub",
                                     configs.email_cred)
         bid_ask = capture_bid_ask(candidates, qt)
-        bid_ask = bid_ask.query("askSize >= 1")
+        bid_ask = bid_ask.query("askSize >= 1").query("bidSize >= 1")
         bid_ask_price_down = bid_ask.merge(calculated[["symbol", "price_down"]], on="symbol", how="inner")
-
+        bid_ask_price_down["ask_price_down"] = bid_ask_price_down["askPrice"]/bid_ask_price_down["lastTradePrice"]-1
         entry_pre = bid_ask_collect.save_entry(configs.entry_path, bid_ask_price_down)
         entry = reduce_entry(entry_pre, configs.report_entry_cnt)  # to reduce entry size for report
         logging.info(("entry dtypes", entry.dtypes))
