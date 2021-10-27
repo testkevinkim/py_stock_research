@@ -25,5 +25,5 @@ entry_path = os.path.join(root_path, "{}us_bid_ask_collect_entry.json".format("t
 report_path = os.path.join(root_path, "{}us_bid_ask_collect_report.json".format("test_" if override else ""))
 
 entry_cnt = 100
-report_entry_cnt = 5
+report_entry_cnt = 10
 exit_ndays = 1
