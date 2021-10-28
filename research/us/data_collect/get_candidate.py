@@ -85,7 +85,8 @@ def main(configs):
             logging.info("2nd wait until finished")
             post = capture_current_price(new_universe, utils.local_time(configs.tz_name))
             if config.override:
-                post["regularMarketPrice"] = post["regularMarketPrice"].map(lambda x: x * (1 + random.uniform(-0.1, 0.1)))
+                post["regularMarketPrice"] = post["regularMarketPrice"].map(
+                    lambda x: x * (1 + random.uniform(-0.1, 0.1)))
             prices.append(post)
 
             price = pd.concat(prices, ignore_index=True)
@@ -96,13 +97,13 @@ def main(configs):
 
             logging.info(("candidates size: ", len(candidates)))
 
-
             qt = bid_ask_collect.init_qtrade(configs.yaml_token_path)
             qt = bid_ask_collect.refresh_token(qt, configs.access_token_path)
             bid_ask = capture_bid_ask(candidates, qt)
             bid_ask = bid_ask.query("askSize >= 1").query("bidSize >= 1")
             bid_ask_price_down = bid_ask.merge(calculated[["symbol", "price_down"]], on="symbol", how="inner")
-            bid_ask_price_down["ask_price_down"] = bid_ask_price_down["askPrice"]/bid_ask_price_down["lastTradePriceTrHrs"]-1
+            bid_ask_price_down["ask_price_down"] = bid_ask_price_down["askPrice"] / bid_ask_price_down[
+                "lastTradePriceTrHrs"] - 1
             entry_pre = bid_ask_collect.save_entry(configs.entry_path, bid_ask_price_down)
             entry = reduce_entry(entry_pre, configs.report_entry_cnt)  # to reduce entry size for report
             logging.info(("entry dtypes", entry.dtypes))
