@@ -109,4 +109,5 @@ def save_entry(path, df) -> pd.DataFrame:
         new_df = df
         logging.info(("init entry saved, size = ", new_df.shape[0]))
     new_df.to_json(path)
+    logging.info(("entry", new_df.dtypes))
     return new_df
