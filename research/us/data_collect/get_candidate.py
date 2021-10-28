@@ -56,11 +56,12 @@ def capture_bid_ask(tickers, qt):
 
 
 def reduce_entry(entry_var, report_entry_cnt):
+    logging.info(entry_var.dtypes)
     entry_var["ask_price_down_rank"] = entry_var.groupby(["date"])["ask_price_down"].rank(method="first")
     logging.info(("before apply report entry cnt filter,", entry_var.shape[0]))
     entry_var = entry_var.query("ask_price_down_rank <= {}".format(str(report_entry_cnt)))
     logging.info(("after apply report entry cnt filter,", entry_var.shape[0]))
-    logging.info(entry_var.dtypes)
+
     return entry_var
 
 
