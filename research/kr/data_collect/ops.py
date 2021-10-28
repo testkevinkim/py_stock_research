@@ -165,7 +165,7 @@ def main(configs):
             columns={"ADJ_ASK_PRICE": "ENTRY_PRICE"})
         reduced_history = history[["TICKER", "DATE", "OPEN"]]
         # build report
-        if len(entry_dates) > configs.exit_ndays:
+        if len(entry_dates) > (configs.exit_ndays + 2):
             report = utils.build_gain_report(entry_df=reduced_entry, history_df=reduced_history,
                                              exit_ndays=configs.exit_ndays)
             report.to_json(configs.report_path)
