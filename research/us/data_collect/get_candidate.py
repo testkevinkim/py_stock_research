@@ -60,6 +60,7 @@ def reduce_entry(entry_var, report_entry_cnt):
     logging.info(("before apply report entry cnt filter,", entry_var.shape[0]))
     entry_var = entry_var.query("ask_price_down_rank <= {}".format(str(report_entry_cnt)))
     logging.info(("after apply report entry cnt filter,", entry_var.shape[0]))
+    logging.info(entry_var.dtypes)
     return entry_var
 
 
