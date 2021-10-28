@@ -6,7 +6,7 @@ from research.kr.utils import marketcap_dataprep, unadj_day_price_dataprep
 from rank_selection_main import utils
 import os
 from datetime import datetime, timedelta
-import pytz
+import numpy as np
 
 
 def delayed_offer(ticker):
@@ -168,6 +168,10 @@ def main(configs):
         if len(entry_dates) > (configs.exit_ndays + 2):
             report = utils.build_gain_report(entry_df=reduced_entry, history_df=reduced_history,
                                              exit_ndays=configs.exit_ndays)
+            report["GM_AFTER_FEE"] = report["GM"].map(lambda x: x - configs.fee_perc)
+            report["GM_AFTER_FEE_NORM"] = report["GM_AFTER_FEE"].map(lambda x: x / configs.exit_ndays)
+            cr = np.array(list(report.GM_AFTER_FEE_NORM)).cumprod()
+            report["CR"] = cr
             report.to_json(configs.report_path)
             # email report
             utils.send_email_with_df("kr-price-drop-bid-ask: gain report", configs.email_cred, report)

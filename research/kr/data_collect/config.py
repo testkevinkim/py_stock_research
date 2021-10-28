@@ -33,3 +33,4 @@ report_path = os.path.join(root_path, "{}kr_bid_ask_collect_report.json".format(
 entry_cnt = 20
 exit_ndays = 4
 first_exclusion_cnt = 5
+fee_perc = 0.004
