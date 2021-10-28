@@ -206,3 +206,35 @@ def build_gain_report(entry_df, history_df, exit_ndays) -> pd.DataFrame:
     entry_history = entry_df.merge(history_df, on=["TICKER", "INDEX"], how="inner")
     entry_history["GAIN"] = entry_history["EXIT_OPEN"] / entry_history["ENTRY_PRICE"] - 1
     return entry_history.groupby("DATE").agg(GM=("GAIN", "mean"), CNT=("TICKER", "count")).reset_index()
+
+
+def naver_real_feed(ticker_list):
+    if "." in ticker_list[0]:
+        ticker_list = [str(x.split(".")[0]).zfill(6) for x in ticker_list]
+    ticker_str = ",".join(ticker_list)
+    # new url
+    url = "https://polling.finance.naver.com/api/realtime?query=SERVICE_ITEM:{}".format(
+        ticker_str)
+    res = requests.get(url).json()
+    res_selected = res['result']['areas'][0]['datas']
+    res_list = [(x['cd'], x['ov'], x['hv'], x['lv'], x['nv'], x['aq'], x['pcv'], x['eps'], x['bps'], x['cnsEps']) for x
+                in res_selected]
+    cols = ["TICKER", "OPEN", "HIGH", "LOW", "CLOSE",
+            "VOLUME", "PCLOSE", "EPS", "BPS", "CNSEPS"]
+    res_df = pd.DataFrame(res_list, columns=cols)
+    return res_df
+
+
+def kr_realtime_feed(all_ticker_list: List) -> pd.DataFrame:  # use this for bulk feed
+    max_cut = 500
+    dfs = []
+    while len(all_ticker_list) > 0:
+        temp_ticker_list = all_ticker_list[:max_cut]
+        all_ticker_list = all_ticker_list[max_cut:]
+        dfs.append(naver_real_feed(temp_ticker_list))
+    df_combined = reduce(lambda x, y: x.append(y, ignore_index=True), dfs)
+    df_combined['TICKER'] = df_combined.TICKER.map(
+        lambda x: str(int(float(x))).zfill(6))
+    df_combined['DATE'] = local_date(tz_dict["Korea"])
+    df_combined['TIME'] = local_time(tz_dict["Korea"])
+    return df_combined

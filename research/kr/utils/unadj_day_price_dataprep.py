@@ -52,12 +52,14 @@ def get_price_from_daum(ticker, datacount=2000, adj_flag=True, interval="days"):
 
 def test_get_price_from_daum():
     test_ticker = "035720"
-    test_datacount = 40
-    test_interval = "weeks"  # days
+    test_datacount = 900
+    test_interval = "days"  # days
     test_adjust = True
 
     logging.info("daum history")
     actual_adj = get_price_from_daum(test_ticker, test_datacount, test_adjust, test_interval)
+    logging.info("date min, max")
+    logging.info((actual_adj.DATE.min(), actual_adj.DATE.max()))
     test_adjust = False
     actual_unadj = get_price_from_daum(test_ticker, test_datacount, test_adjust, test_interval)
     actual_comb = pd.merge(actual_adj[["TICKER", "DATE", "CLOSE", "ADJ"]].rename(columns={"CLOSE": "ADJCLOSE"}),
@@ -99,6 +101,8 @@ def test_get_adj_unadj_day_price():
     test_datacount = 2000
     actual, failed = get_adj_unadj_day_price(test_tickers, test_datacount)
     logging.info(actual.TICKER.unique())
+    logging.info("date min, max")
+    logging.info((actual.DATE.min(), actual.DATE.max()))
     logging.info(actual.head())
     logging.info(actual[actual["DATE"].map(
         lambda x: pd.to_datetime(x, format="%Y-%m-%d").year * 100 + pd.to_datetime(x, format="%Y-%m-%d").month in [
