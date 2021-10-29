@@ -51,6 +51,9 @@ def calculate_price_drop(prices) -> pd.DataFrame:
 
 def capture_bid_ask(tickers, qt):
     bid_ask = bid_ask_collect.get_bid_ask(tickers, qt)
+    bid_ask["askPrice"] = pd.to_numeric(bid_ask["askPrice"])
+    bid_ask["askSize"] = pd.to_numeric(bid_ask["askSize"])
+    bid_ask["lastTradePriceTrHrs"] = pd.to_numeric(bid_ask["lastTradePriceTrHrs"])
     logging.info(("bid_ask_size", bid_ask.shape[0]))
     return bid_ask
 
@@ -105,6 +108,10 @@ def main(configs):
             bid_ask_price_down["ask_price_down"] = bid_ask_price_down["askPrice"] / bid_ask_price_down[
                 "lastTradePriceTrHrs"] - 1
             entry_pre = bid_ask_collect.save_entry(configs.entry_path, bid_ask_price_down)
+            entry_pre["askPrice"] = pd.to_numeric(entry_pre["askPrice"])
+            entry_pre["askSize"] = pd.to_numeric(entry_pre["askSize"])
+            entry_pre["lastTradePriceTrHrs"] = pd.to_numeric(entry_pre["lastTradePriceTrHrs"])
+
             entry = reduce_entry(entry_pre, configs.report_entry_cnt)  # to reduce entry size for report
             logging.info(("entry dtypes", entry.dtypes))
 
