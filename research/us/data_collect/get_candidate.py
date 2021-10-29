@@ -138,8 +138,9 @@ def main(configs):
             utils.send_status_email("us-bid-ask-collect: market closed or holiday", configs.email_cred)
     except Exception as e:
         logging.error(e, exc_info=True)
-        utils.send_status_email("check questrade auth issue - regenerate access token from api hub",
-                                configs.email_cred)
+        utils.send_status_email(
+            "check questrade auth issue - regenerate access token from api hub or some detail in body",
+            configs.email_cred, str(e))
 
 
 def test_build_universe():
