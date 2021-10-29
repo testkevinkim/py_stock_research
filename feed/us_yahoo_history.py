@@ -34,3 +34,15 @@ def test_get_yahoo_history():
     logging.info(actual.head().to_string())
     logging.info(actual.dtypes)
     assert len(actual.TICKER.unique()) == len(test_tickers)
+    delisted = ["LDL"]
+    actual = get_yahoo_history(delisted, "2012-01-01", "2020-02-01")
+    logging.info(actual.shape)
+    logging.info(actual.DATE.max())
+    logging.info(actual.tail())
+    delisted = ["SWS"]
+    actual = get_yahoo_history(delisted, "2012-01-01", "2020-02-01")
+    logging.info(actual.shape)
+    logging.info(actual.DATE.max())
+    # no history of delisted stocks
+
+    # python -m pytest /Users/KXK2ZO/py_stock_research/feed/us_yahoo_history.py::test_get_yahoo_history --log-cli-level=INFO

@@ -33,7 +33,11 @@ def get_bid_ask(tickers, qt) -> pd.DataFrame:
     quotes = []
     for t in tickers:
         try:
-            quotes.append(pd.DataFrame.from_dict([qt.get_quote(t)]))
+            temp = pd.DataFrame.from_dict([qt.get_quote(t)])
+            temp["askPrice"] = pd.to_numeric(temp["askPrice"])
+            temp["askSize"] = pd.to_numeric(temp["askSize"])
+            temp["lastTradePriceTrHrs"] = pd.to_numeric(temp["lastTradePriceTrHrs"])
+            quotes.append(temp)
         except Exception as e:
             logging.info((str(e), t))
     bid_ask = pd.concat(quotes, ignore_index=True)

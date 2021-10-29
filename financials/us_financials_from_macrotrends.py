@@ -90,3 +90,24 @@ def test_get_px():
     logging.info(actual.dtypes)
     logging.info(actual.head().to_string())
     logging.info(actual.shape)
+
+
+def get_shares_outstanding(ticker):
+    url = "https://www.macrotrends.net/stocks/charts/{}/valhi/shares-outstanding".format(ticker)
+    dfs = pd.read_html((requests.get(url, headers=requests_header)).text)
+    result = dfs[1]
+    result.columns = ["DATE", "SHARES_OUTSTANDING_MIL"]
+    result = result.query("SHARES_OUTSTANDING_MIL > 0")
+    result = result.dropna()
+    result["TICKER"] = ticker
+    return result
+
+
+def test_get_shares_outstanding():
+    test_tickers = ["FB", "AAPL"]
+    result = pd.concat([get_shares_outstanding(t) for t in test_tickers], ignore_index=True)
+    logging.info(result.dtypes)
+    logging.info((result.head(), result.tail()))
+    logging.info(result.shape)
+
+    # python -m pytest /Users/KXK2ZO/py_stock_research/financials/us_financials_from_macrotrends.py::test_get_shares_outstanding --log-cli-level=INFO
