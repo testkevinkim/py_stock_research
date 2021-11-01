@@ -73,6 +73,8 @@ def get_dividend_target_price(dividend_universe, target_yield=0.2, min_history_y
     dividend_history_cnt["DIVCNT_MEDIAN"] = dividend_history_cnt["DIVCNT_MEDIAN"].map(lambda x: math.ceil(x))
 
     dividend_history["YRMO"] = dividend_history["YEAR"] * 100 + dividend_history["MONTH"]
+    dividend_history["YRMO"] = pd.to_numeric(dividend_history["YRMO"])
+    logging.info(dividend_history.dtypes)
     dividend_history["YRMORANK"] = dividend_history.groupby("TICKER")["YRMO"].rank(ascending=False)
     dividend_history = dividend_history.merge(dividend_history_cnt, on="TICKER", how="inner")
     dividend_history_recent_raw = dividend_history[dividend_history["YRMORANK"] <= dividend_history["DIVCNT_MEDIAN"]]
