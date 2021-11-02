@@ -107,7 +107,7 @@ def main(override=False, universe_max_page=None):
             report_raw = do_exit(entry=whole_entry, start_date=start_date, end_date=end_date,
                                  exit_ndays=config.exit_ndays,
                                  fee_perc=config.fee_perc, history_path=config.history_path)
-            if report_raw:
+            if report_raw is not None:
                 report = us_gain_report.agg_performance(report_raw)
                 if not override:
                     utils.send_email_with_df("us_rank_selection ideas result", email_cred, report)
