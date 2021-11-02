@@ -77,6 +77,7 @@ def do_exit(entry, start_date, end_date, exit_ndays, fee_perc, history_path):
 
 
 def main(override=False, universe_max_page=None):
+
     """
     do entry -> do exit
     build aggregation report from exit result
@@ -86,40 +87,44 @@ def main(override=False, universe_max_page=None):
     :param universe_max_page:
     :return:
     """
-    if utils.is_market_open(override, tz_name=utils.tz_dict["US"], ex_name="nyse"):
-        logging.info("main start - market is open today")
-        today_date = utils.local_date(utils.tz_dict["US"])
-        today_time = utils.local_time(utils.tz_dict["US"])
-        # entry
-        today_candidates = do_entry(config.entry_count, config.universe_path, config.entry_path,
-                                    today_date, today_time, universe_max_page)
-        # report
-        whole_entry = pd.read_json(config.entry_path, convert_dates=False)
-        logging.info("entry nrow= {}".format(str(whole_entry.shape[0])))
-        logging.info("entry date count ={}".format(str(len(whole_entry.DATE.unique()))))
-        logging.info("entry ticker count ={}".format(str(len(whole_entry.TICKER.unique()))))
-        whole_entry_dates = sorted(list(whole_entry.DATE.unique()))
-        start_date = whole_entry_dates[0]
-        end_date = whole_entry_dates[-1]
-        logging.info("start date: {}, end date: {} in history download".format(start_date, end_date))
-        report_raw = do_exit(entry=whole_entry, start_date=start_date, end_date=end_date,
-                             exit_ndays=config.exit_ndays,
-                             fee_perc=config.fee_perc, history_path=config.history_path)
-        if report_raw:
-            report = us_gain_report.agg_performance(report_raw)
-            if not override:
-                utils.send_email_with_df("us_rank_selection ideas result", email_cred, report)
-                logging.info("email report sent")
+    try:
+        if utils.is_market_open(override, tz_name=utils.tz_dict["US"], ex_name="nyse"):
+            logging.info("main start - market is open today")
+            today_date = utils.local_date(utils.tz_dict["US"])
+            today_time = utils.local_time(utils.tz_dict["US"])
+            # entry
+            today_candidates = do_entry(config.entry_count, config.universe_path, config.entry_path,
+                                        today_date, today_time, universe_max_page)
+            # report
+            whole_entry = pd.read_json(config.entry_path, convert_dates=False)
+            logging.info("entry nrow= {}".format(str(whole_entry.shape[0])))
+            logging.info("entry date count ={}".format(str(len(whole_entry.DATE.unique()))))
+            logging.info("entry ticker count ={}".format(str(len(whole_entry.TICKER.unique()))))
+            whole_entry_dates = sorted(list(whole_entry.DATE.unique()))
+            start_date = whole_entry_dates[0]
+            end_date = whole_entry_dates[-1]
+            logging.info("start date: {}, end date: {} in history download".format(start_date, end_date))
+            report_raw = do_exit(entry=whole_entry, start_date=start_date, end_date=end_date,
+                                 exit_ndays=config.exit_ndays,
+                                 fee_perc=config.fee_perc, history_path=config.history_path)
+            if report_raw:
+                report = us_gain_report.agg_performance(report_raw)
+                if not override:
+                    utils.send_email_with_df("us_rank_selection ideas result", email_cred, report)
+                    logging.info("email report sent")
+                else:
+                    logging.info("skip email report")
             else:
-                logging.info("skip email report")
+                logging.info("entry is too short to generate report")
+                skip_report_subject = "us_rank_selection ideas: entry is too short to generate report - {} days"
+                utils.send_status_email(skip_report_subject.format(str(len(whole_entry_dates))), email_cred,
+                                        "should be more than {} days".format(str(config.exit_ndays + 10)))
         else:
-            logging.info("entry is too short to generate report")
-            skip_report_subject = "us_rank_selection ideas: entry is too short to generate report - {} days"
-            utils.send_status_email(skip_report_subject.format(str(len(whole_entry_dates))), email_cred,
-                                    "should be more than {} days".format(str(config.exit_ndays + 10)))
-    else:
-        utils.send_status_email("us_rank_selection ideas skipped - weekend or holiday", email_cred,
-                                "weekend or holiday")
+            utils.send_status_email("us_rank_selection ideas skipped - weekend or holiday", email_cred,
+                                    "weekend or holiday")
+    except Exception as e:
+        logging.error(e, exc_info=True)
+        utils.send_status_email("us_rank_selection has error", email_cred, str(e))
 
 
 def test_main():
