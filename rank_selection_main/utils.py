@@ -236,7 +236,7 @@ def kr_realtime_feed(all_ticker_list: List) -> pd.DataFrame:  # use this for bul
         dfs.append(naver_real_feed(temp_ticker_list))
     df_combined = reduce(lambda x, y: x.append(y, ignore_index=True), dfs)
     df_combined['TICKER'] = df_combined.TICKER.map(
-        lambda x: str(int(float(x))).zfill(6))
+        lambda x: str(x).split(".")[0].zfill(6))
     df_combined['DATE'] = local_date(tz_dict["Korea"])
     df_combined['TIME'] = local_time(tz_dict["Korea"])
     return df_combined
