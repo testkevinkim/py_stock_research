@@ -240,3 +240,57 @@ def kr_realtime_feed(all_ticker_list: List) -> pd.DataFrame:  # use this for bul
     df_combined['DATE'] = local_date(tz_dict["Korea"])
     df_combined['TIME'] = local_time(tz_dict["Korea"])
     return df_combined
+
+
+def naver_download_history(ticker, pdays, print_log=False):
+    l_df = None
+    try:
+        url = "https://fchart.stock.naver.com/sise.nhn?symbol={ticker}&timeframe=day&count={pdays}&requestType=0".format(
+            ticker=ticker,
+            pdays=str(pdays))
+        res = requests.get(url)
+        l = [x.replace('"', '') for x in res.text.split("item data=")[1:]]
+        l = [x.replace(' />\n\t\t\t\n\t\t\t\t<', '') for x in l]
+        l = [
+            x.replace(' />\n\t\t\t\n\t\n\n\n\t</chartdata>\n</protocol>\n', '') for x in l]
+        l_split = [x.split("|") for x in l]
+        l_cols = ["DATE", "OPEN", "HIGH", "LOW", "CLOSE", "VOLUME"]
+        l_df = pd.DataFrame(l_split, columns=l_cols)
+        l_df['DATE'] = l_df['DATE'].apply(
+            lambda x: "-".join([x[:4], x[4:6], x[6:]]))
+        num_cols = l_cols[1:]
+        l_df[num_cols] = l_df[num_cols].apply(pd.to_numeric, errors='coerce')
+        l_df['TICKER'] = ticker
+    except Exception as e:
+        print("{} has error at history download".format(ticker))
+        print(str(e))
+    time.sleep(0.1)
+    logging.info("{} - history downloaded".format(ticker))
+    if print_log:
+        print("{} - history downloaded".format(ticker))
+    return l_df
+
+
+# use this for bulk history download
+def kr_download_history(ticker_list, pdays, print_log=False) -> pd.DataFrame:
+    dfs = []
+    failed_cnt = 0
+    if "." in ticker_list[0]:
+        ticker_list = [str(x.split(".")[0]).zfill(6) for x in ticker_list]
+    for i, t in enumerate(ticker_list):
+        try:
+            logging.info(("ticker", t, "cnt", i))
+            if print_log:
+                print(("ticker", t, "cnt", i))
+            temp = naver_download_history(t, pdays, print_log)
+            if temp is not None:
+                dfs.append(temp)
+        except Exception as e:
+            logging.info("{} failed".format(str(t)))
+            logging.error(e, exc_info=True)
+            failed_cnt += 1
+    if print_log:
+        print("total failed ticker cnt = {}".format(str(failed_cnt)))
+    logging.info("total failed ticker cnt = {}".format(str(failed_cnt)))
+    df_combined = pd.concat(dfs, ignore_index=True)
+    return df_combined
