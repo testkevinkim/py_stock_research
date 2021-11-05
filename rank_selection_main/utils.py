@@ -294,3 +294,16 @@ def kr_download_history(ticker_list, pdays, print_log=False) -> pd.DataFrame:
     logging.info("total failed ticker cnt = {}".format(str(failed_cnt)))
     df_combined = pd.concat(dfs, ignore_index=True)
     return df_combined
+
+
+def save_entry(path, df) -> pd.DataFrame:
+    if os.path.exists(path):
+        existing_df = pd.read_json(path, convert_dates=False)
+        new_df = pd.concat([existing_df, df], ignore_index=True)
+        logging.info(("old entry size = ", existing_df.shape[0], " appended entry size = ", new_df.shape[0]))
+    else:
+        new_df = df
+        logging.info(("init entry saved, size = ", new_df.shape[0]))
+    new_df.to_json(path)
+    logging.info(("entry", new_df.dtypes))
+    return new_df
