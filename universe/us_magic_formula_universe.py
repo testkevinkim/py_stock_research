@@ -121,8 +121,10 @@ def get_magic_candidates(df, entry_cnt):
     df["RANKSUM"] = df["PROFIT_VALUE_RANK"] + df["FWD_ROA_RANK"]
     df["AMT"] = df["Avg Volume"] * df["Price"]
     df["RANKSUM_RANK"] = df["RANKSUM"].rank(method="first")
-    value_universe = df.sort_values(by="RANKSUM_RANK").head(entry_cnt)
+    df = df.sort_values(by="RANKSUM_RANK").head(entry_cnt * 4)
+    df["AMT_RANK"] = df["AMT"].rank(method="first")
+    value_universe = df.sort_values(by="AMT_RANK").head(entry_cnt)
     return (value_universe[
-                ["Ticker", "P/E", "Fwd P/E", "PROFIT_VALUE", "RANKSUM", "RANKSUM_RANK", "AMT", "Price", "ROE", "ROA",
-                 "Fwd_ROA", "P/B",
+                ["Ticker", "P/E", "Fwd P/E", "PROFIT_VALUE", "RANKSUM", "AMT", "Price", "ROE", "ROA",
+                 "Fwd_ROA", "P/B", "Avg Volume", "Volume",
                  "Sector", 'Target Price']], df)
