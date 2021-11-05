@@ -34,6 +34,8 @@ def main(override=False, universe_max_page=None):
             if len(all_full.DATE.unique()) > 1:
                 report = ops.get_report_ready(selected, config.tz_name, config.exit_ndays)
                 utils.send_email_with_df("forward magic formula report", email_cred, report)
+                report.to_json(config.report_path)
+                logging.info("report saved to {}".format(config.report_path))
             else:
                 logging.info("too short entry to build report")
 

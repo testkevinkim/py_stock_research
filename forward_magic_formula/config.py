@@ -16,4 +16,5 @@ tz_name = "US/Eastern"
 log_path = os.path.join(root_path, "{}us_forward_magic_formula.log".format("test_" if override else ""))
 email_path = os.path.join(root_path, "gmail.json")
 entry_path = os.path.join(root_path, "{}us_forward_magic_formula_entry.json".format("test_" if override else ""))
+report_path = os.path.join(root_path, "{}us_forward_magic_formula_report.json".format("test_" if override else ""))
 entry_cnt = 10
