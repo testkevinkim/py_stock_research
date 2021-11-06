@@ -112,7 +112,7 @@ def get_magic_candidates(df, entry_cnt):
     df["AMT"] = df["Avg Volume"] * df["Price"]
     df = df[df["EPS this Y"].map(lambda x: x > 0)]
     df = df[df["P/E"].map(lambda x: x < 50)]
-    df = df[df["AMT"].map(lambda x: x > 5*1000*1000)]
+    df = df[df["AMT"].map(lambda x: x > 5 * 1000 * 1000)]
     df = df[df["Fwd P/E"] < df["P/E"]]
     df["ASSET_TO_MK"] = 1 / (df["ROA"] * 0.01 * df["P/E"])
     df["EQUITY_TO_MK"] = 1 / (df["ROE"] * 0.01 * df["P/E"])
@@ -127,6 +127,6 @@ def get_magic_candidates(df, entry_cnt):
     df["AMT_RANK"] = df["AMT"].rank(method="first")
     value_universe = df.sort_values(by="AMT_RANK").head(entry_cnt)
     return (value_universe[
-                ["Ticker", "P/E", "Fwd P/E", "PROFIT_VALUE", "RANKSUM", "AMT", "Price", "ROE", "ROA",
+                ["Ticker", "P/E", "Fwd P/E", "PROFIT_VALUE", "RANKSUM", "AMT", "ROE", "ROA",
                  "Fwd_ROA", "P/B", "Avg Volume", "Volume",
-                 "Sector", 'Target Price']], df)
+                 "Sector", "Price", 'Target Price']], df)
