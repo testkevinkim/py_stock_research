@@ -109,8 +109,10 @@ def test_build_magic_formula_universe():
 def get_magic_candidates(df, entry_cnt):
     df["Fwd_Adj_E"] = df["P/E"] / df["Fwd P/E"]
     df["Fwd_ROA"] = df["ROA"] * df["Fwd_Adj_E"]
+    df["AMT"] = df["Avg Volume"] * df["Price"]
     df = df[df["EPS this Y"].map(lambda x: x > 0)]
     df = df[df["P/E"].map(lambda x: x < 50)]
+    df = df[df["AMT"].map(lambda x: x > 5*1000*1000)]
     df = df[df["Fwd P/E"] < df["P/E"]]
     df["ASSET_TO_MK"] = 1 / (df["ROA"] * 0.01 * df["P/E"])
     df["EQUITY_TO_MK"] = 1 / (df["ROE"] * 0.01 * df["P/E"])
@@ -119,7 +121,7 @@ def get_magic_candidates(df, entry_cnt):
     df["PROFIT_VALUE_RANK"] = df["PROFIT_VALUE"].rank()
     df["FWD_ROA_RANK"] = df["Fwd_ROA"].rank(ascending=False)
     df["RANKSUM"] = df["PROFIT_VALUE_RANK"] + df["FWD_ROA_RANK"]
-    df["AMT"] = df["Avg Volume"] * df["Price"]
+
     df["RANKSUM_RANK"] = df["RANKSUM"].rank(method="first")
     df = df.sort_values(by="RANKSUM_RANK").head(entry_cnt * 8)
     df["AMT_RANK"] = df["AMT"].rank(method="first")
