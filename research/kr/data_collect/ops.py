@@ -111,6 +111,8 @@ def get_history(universe, pdays):
 def adj_entry(entry, adj_history):
     logging.info(("entry date min max", entry.DATE.min(), entry.DATE.max()))
     logging.info(("history date min max", adj_history.DATE.min(), adj_history.DATE.max()))
+    entry["TICKER"] = entry["TICKER"].map(lambda x: str(x).zfill(6))
+    adj_history["TICKER"] = adj_history["TICKER"].map(lambda x: str(x).zfill(6))
     adj_history = adj_history[["TICKER", "DATE", "ADJ_RATIO"]]
     adj_entry_df = entry.merge(adj_history, on=["TICKER", "DATE"], how="inner")
     adj_entry_df["ADJ_ASK_PRICE"] = adj_entry_df["ASK_PRICE"] * adj_entry_df["ADJ_RATIO"]
@@ -159,6 +161,8 @@ def main(configs):
         entry_universe = list(appended_entry.TICKER.unique())
         entry_dates = sorted(list(appended_entry.DATE.unique()))
         history = get_history(entry_universe, len(entry_dates) + 20)
+        history.to_json(configs.history_path)
+        logging.info("history saved to {}".format(configs.history_path))
         # adj entry
         adjusted_entry = adj_entry(appended_entry, history)
         reduced_entry = adjusted_entry[["TICKER", "DATE", "ADJ_ASK_PRICE"]].rename(

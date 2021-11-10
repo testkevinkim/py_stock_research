@@ -205,6 +205,7 @@ def build_gain_report(entry_df, history_df, exit_ndays) -> pd.DataFrame:
     history_df["INDEX"] = history_df["INDEX"].map(lambda x: x - exit_ndays)
     entry_history = entry_df.merge(history_df, on=["TICKER", "INDEX"], how="inner")
     entry_history["GAIN"] = entry_history["EXIT_OPEN"] / entry_history["ENTRY_PRICE"] - 1
+    logging.info(("entry_history size", entry_history.shape, entry_history.dtypes))
     report = entry_history.groupby("DATE").agg(GM=("GAIN", "mean"), CNT=("TICKER", "count")).reset_index()
     report = report.sort_values(by="DATE")
     return report
