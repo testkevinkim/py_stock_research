@@ -101,6 +101,7 @@ def save_entry(path, df) -> pd.DataFrame:
 
 
 def get_history(universe, pdays):
+    universe = [str(x).zfill(6) for x in universe]
     history, failed = unadj_day_price_dataprep.get_adj_unadj_day_price(universe, pdays)
     # "DATE", "STARTDATE", "OPEN", "HIGH", "LOW", "CLOSE", "VOLUME", "TICKER", "UNADJCLOSE"
     history["ADJ_RATIO"] = history["CLOSE"] / history["UNADJCLOSE"]
