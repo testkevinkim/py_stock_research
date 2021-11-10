@@ -29,7 +29,7 @@ else:
 
 entry_path = os.path.join(root_path, "{}kr_bid_ask_collect_entry.json".format("test_" if override else ""))
 report_path = os.path.join(root_path, "{}kr_bid_ask_collect_report.json".format("test_" if override else ""))
-istory_path = os.path.join(root_path, "{}kr_bid_ask_collect_history.json".format("test_" if override else ""))
+history_path = os.path.join(root_path, "{}kr_bid_ask_collect_history.json".format("test_" if override else ""))
 
 entry_cnt = 20
 exit_ndays = 4
