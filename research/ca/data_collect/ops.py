@@ -335,5 +335,7 @@ def test_main():
     config.override = True
     config.test_universe = ['ENB.TO', 'SLF.TO', 'MFC.TO', 'RY.TO', 'SHOP.TO', 'BMO.TO', 'CNQ.TO', 'BCE.TO', 'SU.TO',
                             'TD.TO']
+    email_cred = utils.read_json_to_dict(config.email_path)
+    config.email_cred = email_cred
     main(config)
     # python -m pytest research/us/data_collect/get_candidate.py::test_main --log-cli-level=INFO
