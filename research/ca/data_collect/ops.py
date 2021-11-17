@@ -270,7 +270,8 @@ def test_calculate_price_drop():
     comb = pd.concat([actual, actual2], ignore_index=True)
     logging.info(comb.head())
     logging.info(comb.dtypes)
-    result = calculate_price_drop(comb)
+    post_flag = False
+    result = calculate_price_drop(comb, post_market_flag=post_flag)
     logging.info(result.head().to_string())
     logging.info(result.shape)
     logging.info(result.dtypes)
