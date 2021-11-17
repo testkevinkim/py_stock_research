@@ -241,7 +241,7 @@ def main(configs):
             entry_start_date = entry_dates[0]
             if len(entry_dates) >= 3:
                 history = get_history_from_qt(entry_universe, entry_start_date, utils.local_date(configs.tz_name), qt)
-                save_entry(configs.history_path, history)
+                history.to_json(configs.history_path)
                 logging.info("history saved to {}".format(configs.history_path))
                 history_reduced = history[["TICKER", "DATE", "OPEN"]]
                 entry_reduced = entry[["symbol", "date", "askPrice"]]
@@ -257,9 +257,13 @@ def main(configs):
                     utils.send_email_with_df("us-bid-ask-collect: gain report", configs.email_cred, report)
                 else:
                     logging.info(("report not sent because report size = 0", report.shape[0]))
-                    utils.send_status_email("us-bid-ask-collect: entry is too short", configs.email_cred)
+                    utils.send_status_email("us-bid-ask-collect: entry is too short", configs.email_cred,
+                                            "entry size = {}".format(str(entry_pre.shape[0])))
+
             else:
                 logging.info(("too short entry size, entry dates count = ", len(entry_dates)))
+                utils.send_status_email("us-bid-ask-collect: entry is too short", configs.email_cred,
+                                        "entry size = {}".format(str(entry_pre.shape[0])))
         else:
             # close
             utils.send_status_email("us-bid-ask-collect: market closed or holiday", configs.email_cred)
