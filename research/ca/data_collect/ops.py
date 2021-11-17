@@ -49,6 +49,28 @@ def get_bid_ask(tickers, qt) -> pd.DataFrame:
     return bid_ask
 
 
+def get_history_from_qt(tickers, start_date, end_date, qt):
+    history = []
+    for i, t in enumerate(tickers):
+        try:
+            temp = qt.get_history_data(t, start_date, end_date, "OneDay")
+            history.append(temp)
+        except Exception as e:
+            logging.info("{} failed".format(str(t)))
+            logging.error(e, exc_info=True)
+    return pd.concat(history, ignore_index=True)
+
+
+def test_get_history_from_qt():
+    given_universe = ['ENB.TO', 'SLF.TO', 'MFC.TO', 'RY.TO', 'SHOP.TO', 'BMO.TO', 'CNQ.TO', 'BCE.TO', 'SU.TO', 'TD.TO']
+    qt = init_qtrade(config.yaml_token_path)
+    qt = refresh_token(qt, config.access_token_path)
+    history_df = get_history_from_qt(given_universe, "2021-01-01", "2021-11-11", qt)
+    logging.info(history_df.head())
+    logging.info(history_df.shape)
+    logging.info(history_df.dtypes)
+
+
 def get_feed(tickers) -> pd.DataFrame:
     feed_keys = ["bid", "ask", "bidSize", "askSize", "tradeable", "symbol",
                  "marketState", "regularMarketPrice", "regularMarketVolume", "postMarketPrice"]
