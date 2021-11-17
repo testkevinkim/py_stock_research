@@ -10,3 +10,4 @@
 10 14 * * * /root/anaconda3/bin/python /home/py_stock_research/research/kr/data_collect/main.py > /home/py_stock_research_test/kr_bid_ask_collect_cron.log 2>&1
 10 1 10 * * /root/anaconda3/bin/python /home/py_stock_research/research/us/dividend/main.py > /home/py_stock_research_test/us_dividend_cron.log 2>&1 # dividend target report
 10 2 10 * * /root/anaconda3/bin/python /home/py_stock_research/forward_magic_formula/magic_formula_main.py > /home/py_stock_research_test/us_forward_magic_formula_cron.log 2>&1 # forward magic formula report
+45 3 * * * /root/anaconda3/bin/python /home/py_stock_research/research/ca/data_collect/main.py > /home/py_stock_research_test/ca_bid_ask_collect_cron.log 2>&1 # ca price down bid ask
