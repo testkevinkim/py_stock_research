@@ -254,19 +254,19 @@ def main(configs):
 
                 # send
                 if report.shape[0] > 0:
-                    utils.send_email_with_df("us-bid-ask-collect: gain report", configs.email_cred, report)
+                    utils.send_email_with_df("ca-bid-ask-collect: gain report", configs.email_cred, report)
                 else:
                     logging.info(("report not sent because report size = 0", report.shape[0]))
-                    utils.send_status_email("us-bid-ask-collect: entry is too short", configs.email_cred,
+                    utils.send_status_email("ca-bid-ask-collect: entry is too short", configs.email_cred,
                                             "entry size = {}".format(str(entry_pre.shape[0])))
 
             else:
                 logging.info(("too short entry size, entry dates count = ", len(entry_dates)))
-                utils.send_status_email("us-bid-ask-collect: entry is too short", configs.email_cred,
+                utils.send_status_email("ca-bid-ask-collect: entry is too short", configs.email_cred,
                                         "entry size = {}".format(str(entry_pre.shape[0])))
         else:
             # close
-            utils.send_status_email("us-bid-ask-collect: market closed or holiday", configs.email_cred)
+            utils.send_status_email("ca-bid-ask-collect: market closed or holiday", configs.email_cred)
     except Exception as e:
         logging.error(e, exc_info=True)
         utils.send_status_email(
