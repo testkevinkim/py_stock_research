@@ -84,12 +84,6 @@ def get_universe(top_n, min_amt, min_price) -> [str]:
     return [x.replace(".", "-") + ".TO" for x in list(comb_reduced.head(top_n).TICKER.unique())]
 
 
-def test_get_universe():
-    actual = get_universe(100, 1, 2)
-    logging.info(actual[:10])
-    logging.info(len(actual))
-
-
 def get_tsx_universe(first_key="A"):
     url_template = "http://eoddata.com/stocklist/TSX/{}.htm".format(first_key.upper())
     logging.info(("tsx universe url", url_template))
@@ -113,12 +107,12 @@ def save_entry(path, df) -> pd.DataFrame:
     return new_df
 
 
-def build_universe(given_universe=None):
+def build_universe(configs, given_universe=None):
     if given_universe:
         logging.info("used given universe")
         return given_universe
     else:
-        return get_universe()
+        return get_universe(configs.top_n, configs.min_price, configs.min_amt)
 
 
 def capture_current_price(universe, time):
@@ -249,23 +243,20 @@ def main(configs):
             configs.email_cred, str(e))
 
 
-def test_build_universe():
+def test_build_universe(config):
     given_universe = ['ENB.TO', 'SLF.TO', 'MFC.TO', 'RY.TO', 'SHOP.TO', 'BMO.TO', 'CNQ.TO', 'BCE.TO', 'SU.TO', 'TD.TO']
     actual = build_universe(given_universe)
     logging.info(("given_universe", actual))
-    actual = build_universe(None)
+    actual = build_universe(config, None)
     logging.info(("universe_size", len(actual)))
-    assert len(actual) > 100
+    assert len(actual) > 10
 
 
-def test_capture_current_price():
+def test_capture_current_price(config):
     given_universe = ['ENB.TO', 'SLF.TO', 'MFC.TO', 'RY.TO', 'SHOP.TO', 'BMO.TO', 'CNQ.TO', 'BCE.TO', 'SU.TO', 'TD.TO']
     actual = capture_current_price(given_universe, "test")
     logging.info(("price", actual.head().to_string()))
     assert len(actual.symbol.unique()) == len(given_universe)
-    all_universe = build_universe(None)
-    actual = capture_current_price(all_universe, "test")
-    assert actual.shape[0] > 100
     logging.info(actual.dtypes)
     logging.info(actual.head())
     # python -m pytest research/us/data_collect/get_candidate.py::test_capture_current_price --log-cli-level=INFO

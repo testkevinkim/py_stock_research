@@ -27,3 +27,7 @@ report_path = os.path.join(root_path, "{}ca_bid_ask_collect_report.json".format(
 entry_cnt = 100
 report_entry_cnt = 10
 exit_ndays = 1
+
+min_price = 2
+min_amt = 1
+top_n = 500
