@@ -122,7 +122,7 @@ def capture_current_price(universe, time):
     return price
 
 
-def calculate_price_drop(prices) -> pd.DataFrame:
+def calculate_price_drop(prices, post_market_flag) -> pd.DataFrame:
     pre, post = sorted(list(prices.time.unique()))
     times_names = [(pre, "pre"), (post, "post")]
 
@@ -136,7 +136,7 @@ def calculate_price_drop(prices) -> pd.DataFrame:
         subset = subset[["symbol", new_name]]
         return subset
 
-    dfs = [_filter_rename(prices, x[0], x[1]) for x in times_names]
+    dfs = [_filter_rename(prices, x[0], x[1], post_market_flag) for x in times_names]
     df_comb = dfs[0].merge(dfs[1], on="symbol", how="inner")
     df_comb["price_down"] = df_comb["post"] / df_comb["pre"] - 1
     return df_comb
