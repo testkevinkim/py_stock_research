@@ -15,8 +15,8 @@ tz_name = "US/Eastern"
 log_path = os.path.join(root_path, "{}ca_bid_ask_collect.log".format("test_" if override else ""))
 email_path = os.path.join(root_path, "gmail.json")
 
-first_capture_time = "14:55:00"
-second_capture_time = "15:55:00"
+first_capture_time = "14:50:00"
+second_capture_time = "15:50:00"
 
 yaml_token_path = os.path.join(root_path, "token.yaml")
 access_token_path = os.path.join(root_path, "access_token.yml")
