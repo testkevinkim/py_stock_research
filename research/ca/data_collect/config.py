@@ -31,3 +31,4 @@ exit_ndays = 1
 min_price = 2
 min_amt = 1
 top_n = 500
+post_market_flag = False

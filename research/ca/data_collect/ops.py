@@ -186,7 +186,7 @@ def main(configs):
             prices.append(post)
 
             price = pd.concat(prices, ignore_index=True)
-            calculated = calculate_price_drop(price)
+            calculated = calculate_price_drop(price, configs.post_market_flag)
             calculated = calculated.sort_values(by="price_down")
             candidates = list(calculated.head(configs.entry_cnt).symbol.unique())
             # entry_cnt is large in order capture more bid/ask
