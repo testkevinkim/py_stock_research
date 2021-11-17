@@ -54,6 +54,10 @@ def get_history_from_qt(tickers, start_date, end_date, qt):
     for i, t in enumerate(tickers):
         try:
             temp = pd.DataFrame.from_dict(qt.get_historical_data(t, start_date, end_date, "OneDay"))
+            temp = temp[["start", "open", "high", "low", "close", "volume"]]
+            temp = temp.rename(columns={"start": "DATE", "open": "OPEN", "high": "HIGH", "low": "LOW", "close": "CLOSE",
+                                        "volume": "VOLUME"})
+            temp["DATE"] = temp["DATE"].map(lambda x: x[:10])
             history.append(temp)
         except Exception as e:
             logging.info("{} failed".format(str(t)))
@@ -236,8 +240,9 @@ def main(configs):
             entry_dates = sorted(list(entry.date.unique()))
             entry_start_date = entry_dates[0]
             if len(entry_dates) >= 3:
-                history = us_yahoo_history.get_yahoo_history(entry_universe, entry_start_date,
-                                                             utils.local_date(configs.tz_name))
+                history = get_history_from_qt(entry_universe, entry_start_date, utils.local_date(configs.tz_name), qt)
+                save_entry(configs.history_path, history)
+                logging.info("history saved to {}".format(configs.history_path))
                 history_reduced = history[["TICKER", "DATE", "OPEN"]]
                 entry_reduced = entry[["symbol", "date", "askPrice"]]
                 entry_reduced = entry_reduced.rename(
