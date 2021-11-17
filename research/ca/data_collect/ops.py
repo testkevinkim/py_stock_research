@@ -53,7 +53,7 @@ def get_history_from_qt(tickers, start_date, end_date, qt):
     history = []
     for i, t in enumerate(tickers):
         try:
-            temp = qt.get_history_data(t, start_date, end_date, "OneDay")
+            temp = qt.get_historical_data(t, start_date, end_date, "OneDay")
             history.append(temp)
         except Exception as e:
             logging.info("{} failed".format(str(t)))
