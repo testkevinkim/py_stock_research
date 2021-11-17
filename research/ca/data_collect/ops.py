@@ -245,7 +245,7 @@ def main(configs):
 
 def test_build_universe():
     given_universe = ['ENB.TO', 'SLF.TO', 'MFC.TO', 'RY.TO', 'SHOP.TO', 'BMO.TO', 'CNQ.TO', 'BCE.TO', 'SU.TO', 'TD.TO']
-    actual = build_universe(given_universe)
+    actual = build_universe(config, given_universe)
     logging.info(("given_universe", actual))
     actual = build_universe(config, None)
     logging.info(("universe_size", len(actual)))
