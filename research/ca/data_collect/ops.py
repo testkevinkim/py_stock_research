@@ -166,7 +166,7 @@ def main(configs):
         prices = []
         if utils.is_market_open(configs.override, configs.tz_name, configs.ex_name):
             # market open or override
-            new_universe = build_universe(configs.test_universe)
+            new_universe = build_universe(configs, configs.test_universe)
             logging.info(("universe size: ", len(new_universe)))
 
             utils.wait_until(configs.first_capture_time, configs.tz_name, configs.override)
