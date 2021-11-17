@@ -243,7 +243,7 @@ def main(configs):
             configs.email_cred, str(e))
 
 
-def test_build_universe(config):
+def test_build_universe():
     given_universe = ['ENB.TO', 'SLF.TO', 'MFC.TO', 'RY.TO', 'SHOP.TO', 'BMO.TO', 'CNQ.TO', 'BCE.TO', 'SU.TO', 'TD.TO']
     actual = build_universe(given_universe)
     logging.info(("given_universe", actual))
@@ -252,7 +252,7 @@ def test_build_universe(config):
     assert len(actual) > 10
 
 
-def test_capture_current_price(config):
+def test_capture_current_price():
     given_universe = ['ENB.TO', 'SLF.TO', 'MFC.TO', 'RY.TO', 'SHOP.TO', 'BMO.TO', 'CNQ.TO', 'BCE.TO', 'SU.TO', 'TD.TO']
     actual = capture_current_price(given_universe, "test")
     logging.info(("price", actual.head().to_string()))
@@ -329,7 +329,8 @@ def test_reduce_entry():
 
 
 def test_main():
-    config.override=True
-    config.test_universe = ['ENB.TO', 'SLF.TO', 'MFC.TO', 'RY.TO', 'SHOP.TO', 'BMO.TO', 'CNQ.TO', 'BCE.TO', 'SU.TO', 'TD.TO']
+    config.override = True
+    config.test_universe = ['ENB.TO', 'SLF.TO', 'MFC.TO', 'RY.TO', 'SHOP.TO', 'BMO.TO', 'CNQ.TO', 'BCE.TO', 'SU.TO',
+                            'TD.TO']
     main(config)
     # python -m pytest research/us/data_collect/get_candidate.py::test_main --log-cli-level=INFO
