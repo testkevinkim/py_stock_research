@@ -268,6 +268,8 @@ def test_calculate_price_drop():
     actual2 = capture_current_price(given_universe, "2")
     actual2["regularMarketPrice"] = actual2["regularMarketPrice"].map(lambda x: x * (1 - random.uniform(0, 0.1)))
     comb = pd.concat([actual, actual2], ignore_index=True)
+    logging.info(comb.head())
+    logging.info(comb.dtypes)
     result = calculate_price_drop(comb)
     logging.info(result.head().to_string())
     logging.info(result.shape)
