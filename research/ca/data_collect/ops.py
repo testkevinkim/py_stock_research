@@ -58,6 +58,7 @@ def get_history_from_qt(tickers, start_date, end_date, qt):
             temp = temp.rename(columns={"start": "DATE", "open": "OPEN", "high": "HIGH", "low": "LOW", "close": "CLOSE",
                                         "volume": "VOLUME"})
             temp["DATE"] = temp["DATE"].map(lambda x: x[:10])
+            temp["TICKER"] = t
             history.append(temp)
         except Exception as e:
             logging.info("{} failed".format(str(t)))
