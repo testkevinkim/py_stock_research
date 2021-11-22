@@ -12,6 +12,7 @@ import logging
 from rank_selection_main import utils
 from feed import us_yahoo_history
 import os
+import numpy as np
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
@@ -249,6 +250,10 @@ def main(configs):
                 entry_reduced = entry_reduced.rename(
                     columns={"symbol": "TICKER", "date": "DATE", "askPrice": "ENTRY_PRICE"})
                 report = utils.build_gain_report(entry_reduced, history_reduced, configs.exit_ndays)
+                report["GM_AFTER_FEE"] = report["GM"].map(lambda x: x - configs.fee_perc)
+                report["GM_AFTER_FEE_NORM"] = report["GM_AFTER_FEE"].map(lambda x: x / configs.exit_ndays + 1)
+                cr = np.array(list(report.GM_AFTER_FEE_NORM)).cumprod()
+                report["CR"] = cr
                 logging.info("report built")
                 logging.info(report.head().to_string())
                 report.to_json(configs.report_path)

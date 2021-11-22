@@ -28,6 +28,7 @@ history_path = os.path.join(root_path, "{}ca_bid_ask_collect_history.json".forma
 entry_cnt = 100
 report_entry_cnt = 10
 exit_ndays = 1
+fee_perc = 0.001
 
 min_price = 2
 min_amt = 1
