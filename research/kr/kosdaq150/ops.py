@@ -216,6 +216,7 @@ def main(configs):
             ["TICKER", "DATE", "CLOSE", "AMT"]]
         logging.info(("new entry", unique_entry.shape[0], unique_entry.tail(), unique_entry.dtypes))
         # save entry
+        utils.send_email_with_df("kr_eps_change: entry", configs.email_cred, unique_entry)
         append_entry = save_entry(configs.entry_path, unique_entry)
         append_entry_universe = list(append_entry.TICKER.unique())
         append_entry_dates = list(append_entry.DATE.unique())

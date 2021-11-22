@@ -15,7 +15,7 @@ tz_name = "Asia/Seoul"
 ex_name = "krx"
 log_path = os.path.join(root_path, "{}kr_eps_change.log".format("test_" if override else ""))
 email_path = os.path.join(root_path, "gmail.json")
-universe_max_page = 1 if override else 6
+universe_max_page = 6 if override else 6
 eps_fy = 2
 
 
