@@ -159,11 +159,12 @@ def calculate_ant_portion(gigan_wein):
     gigan_wein["WEIN"] = gigan_wein["WEIN"].map(lambda x: float(str(x).replace(",", "").replace("+", "")))
     gigan_wein["GIGAN_WEIN_SUM"] = gigan_wein["GIGAN"] + gigan_wein["WEIN"]
     gigan_wein["ANT"] = gigan_wein["GIGAN_WEIN_SUM"].map(lambda x: -1 * x)
-    gigan_wein["ANT_SUM"] = gigan_wein.groupby("TICKER")["ANT"].sum().reset_index(0, drop=True)
-    gigan_wein["VOLUME_SUM"] = gigan_wein.groupby("TICKER")["VOLUME"].sum().reset_index(0, drop=True)
-    gigan_wein["ANT_SUM_PORTION"] = gigan_wein["ANT_SUM"] / gigan_wein["VOLUME_SUM"]
-    gigan_wein = gigan_wein[gigan_wein["ANT_SUM_PORTION"].map(lambda x: not pd.isna(x))]
-    return gigan_wein[["TICKER", "ANT_SUM_PORTION", "ANT_SUM"]]
+    gigan_wein_ant_sum = gigan_wein.groupby("TICKER").agg(ANT_SUM=("ANT", "sum")).reset_index()
+    gigan_wein_volume_sum = gigan_wein.groupby("TICKER").agg(VOLUME_SUM=("VOLUME", "sum")).reset_index()
+    gigan_wein_comb = gigan_wein_ant_sum.merge(gigan_wein_volume_sum, on="TICKER", how="inner")
+    gigan_wein_comb["ANT_SUM_PORTION"] = gigan_wein_comb["ANT_SUM"] / gigan_wein_comb["VOLUME_SUM"]
+    gigan_wein_comb = gigan_wein_comb[gigan_wein_comb["ANT_SUM_PORTION"].map(lambda x: not pd.isna(x))]
+    return gigan_wein_comb[["TICKER", "ANT_SUM_PORTION", "ANT_SUM"]]
 
 
 def rank_then_select(dt, first_feature, second_feature, entry_cnt_var, first_asc=True, second_asc=True):
