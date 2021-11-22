@@ -177,7 +177,7 @@ def wait_until(time_str, tz_name="Asia/Seoul", override=False):
             if diff < 1:
                 break
             else:
-                time.sleep(min(diff / 2, 120))
+                time.sleep(min(diff / 2, 60))
                 print(".")
         print("wait end at {}".format(nowtime.strftime("%Y-%m-%d %H:%M:%S")))
         # In case end_datetime was in past to begin with
