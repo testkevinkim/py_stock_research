@@ -174,13 +174,12 @@ def wait_until(time_str, tz_name="Asia/Seoul", override=False):
         while True:
             nowtime = datetime.now(timezone(tz_name))
             diff = (end_datetime - nowtime).total_seconds()
-            if diff < 0:
-                return "wait end at {}".format(
-                    nowtime.strftime(
-                        "%Y-%m-%d %H:%M:%S"))  # In case end_datetime was in past to begin with
-            time.sleep(diff / 2)
-            if diff <= 0.1:
-                return "wait end at {}".format(nowtime.strftime("%Y-%m-%d %H:%M:%S"))
+            if diff < 1:
+                break
+            else:
+                time.sleep(diff / 2)
+        print("wait end at {}".format(nowtime.strftime("%Y-%m-%d %H:%M:%S")))
+        # In case end_datetime was in past to begin with
         pass
     else:
         pass
