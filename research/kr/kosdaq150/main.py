@@ -16,7 +16,11 @@ config.email_cred = email_cred
 
 if __name__ == "__main__":
     logger = utils.init_logger(config.log_path)
-    utils.wait_until(config.first_snapshot_time)
-    logging.info("wait ends")
+    logging.info(config.override)
+    if not config.override:
+        utils.wait_until(config.first_snapshot_time)
+        logging.info("wait ends")
+    else:
+        logging.info("no wait because of override")
     utils.is_market_open(config.override, config.tz_name, config.ex_name)
     ops.main(config)
