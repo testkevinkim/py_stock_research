@@ -167,7 +167,7 @@ def calculate_ant_portion(gigan_wein):
 
 
 def rank_then_select(dt, first_feature, second_feature, entry_cnt_var, first_asc=True, second_asc=True):
-    feature_1_filtered = dt.copy(True)
+    feature_1_filtered = dt.copy(True).dropna()
     feature_1_filtered["{}_RANK".format(first_feature)] = feature_1_filtered[first_feature].rank(
         method="first", ascending=first_asc)
     feature_1_filtered = feature_1_filtered.query("{}_RANK <= {}".format(first_feature, str(2 * entry_cnt_var)))
