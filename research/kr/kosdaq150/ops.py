@@ -212,6 +212,11 @@ def main(configs):
         # up EPS, large ant
         unique_entry_tickers = list(
             set(list(eps_amt_select.TICKER.unique()) + list(eps_ant_select.TICKER.unique())))
+        logging.info(
+            ("eps_amt tickers", len(list(eps_amt_select.TICKER.unique())), sorted(list(eps_amt_select.TICKER.unique())),
+             "eps_ant tickers", len(list(eps_ant_select.TICKER.unique())),
+             sorted(list(eps_ant_select.TICKER.unique()))))
+        logging.info(("unique_entry_tickers", len(unique_entry_tickers), unique_entry_tickers))
         unique_entry = feed[feed["TICKER"].map(lambda x: x in unique_entry_tickers)][
             ["TICKER", "DATE", "CLOSE", "AMT"]]
         logging.info(("new entry", unique_entry.shape[0], unique_entry.tail(), unique_entry.dtypes))
