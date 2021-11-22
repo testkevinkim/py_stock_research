@@ -162,7 +162,7 @@ def calculate_ant_portion(gigan_wein):
     gigan_wein["ANT_SUM"] = gigan_wein.groupby("TICKER")["ANT"].sum().reset_index(0, drop=True)
     gigan_wein["VOLUME_SUM"] = gigan_wein.groupby("TICKER")["VOLUME"].sum().reset_index(0, drop=True)
     gigan_wein["ANT_SUM_PORTION"] = gigan_wein["ANT_SUM"] / gigan_wein["VOLUME_SUM"]
-    gigan_wein = gigan_wein[gigan_wein["ANT_SUM"].map(lambda x: not pd.isna(x))]
+    gigan_wein = gigan_wein[gigan_wein["ANT_SUM_PORTION"].map(lambda x: not pd.isna(x))]
     return gigan_wein[["TICKER", "ANT_SUM_PORTION", "ANT_SUM"]]
 
 
