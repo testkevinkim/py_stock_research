@@ -201,20 +201,26 @@ def main(configs):
         logging.info("feed reduced from {} to {} because of min_amt, min_face".format(str(old_feed_cnt), str(len(
             feed.TICKER.unique()))))
         # feature rank -> select entry -> unique entry candidates
+        logging.info(("feed", feed.tail(), "consensus", consensus.tail(), "ant_result", ant_result.tail()))
         eps_amt = feed.merge(consensus, on="TICKER", how="inner")
-        logging.info((eps_amt.dtypes, eps_amt.tail()))
-        eps_amt_select = rank_then_select(eps_amt, "EPS_CHG", "AMT", configs.entry_cnt_per_idea, False, True)
+        logging.info(("eps_amt", eps_amt.dtypes, eps_amt.shape, eps_amt.tail()))
+        eps_amt_select = rank_then_select(eps_amt.copy(True), "EPS_CHG", "AMT", configs.entry_cnt_per_idea, False, True)
         # up EPS, small amt
 
         eps_ant = consensus.merge(ant_result, on="TICKER", how="inner")
-        eps_ant_select = rank_then_select(eps_ant, "EPS_CHG", "ANT_SUM_PORTION", configs.entry_cnt_per_idea, False,
+        logging.info(("eps_ant", eps_ant.dtypes, eps_ant.shape, eps_ant.tail()))
+        eps_ant_select = rank_then_select(eps_ant.copy(True), "EPS_CHG", "ANT_SUM_PORTION", configs.entry_cnt_per_idea,
+                                          False,
                                           False)
         # up EPS, large ant
         unique_entry_tickers = list(
             set(list(eps_amt_select.TICKER.unique()) + list(eps_ant_select.TICKER.unique())))
         logging.info(
-            ("eps_amt tickers", len(list(eps_amt_select.TICKER.unique())), sorted(list(eps_amt_select.TICKER.unique())),
-             "eps_ant tickers", len(list(eps_ant_select.TICKER.unique())),
+            ("eps_*AMT* tickers",
+             len(list(eps_amt_select.TICKER.unique())),
+             sorted(list(eps_amt_select.TICKER.unique())),
+             "****"
+             "eps_*ANT* ickers", len(list(eps_ant_select.TICKER.unique())),
              sorted(list(eps_ant_select.TICKER.unique()))))
         logging.info(("unique_entry_tickers", len(unique_entry_tickers), unique_entry_tickers))
         unique_entry = feed[feed["TICKER"].map(lambda x: x in unique_entry_tickers)][
