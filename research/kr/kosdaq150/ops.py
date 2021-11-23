@@ -196,6 +196,7 @@ def main(configs):
         # collect realtime price
         feed = utils.kr_realtime_feed(universe)
         feed["AMT"] = feed["CLOSE"] * feed["VOLUME"] / 10 ** 8
+        feed["OC"] = feed["OPEN"]/feed["CLOSE"]-1
         old_feed_cnt = len(feed.TICKER.unique())
         feed = feed.query("AMT >= {}".format(str(configs.min_amt)))
         feed = feed.query("CLOSE >= {}".format(str(configs.min_face)))
@@ -214,15 +215,16 @@ def main(configs):
                                           False,
                                           False)
         # up EPS, large ant
+        eps_oc = feed.merge(consensus, on="TICKER", how="inner")
+        eps_oc_select = rank_then_select(eps_oc.copy(True), "EPS_CHG", "OC", configs.entry_cnt_per_idea, False, True)
+        # up EPS, small amt
+
         unique_entry_tickers = list(
-            set(list(eps_amt_select.TICKER.unique()) + list(eps_ant_select.TICKER.unique())))
-        # logging.info(
-        #     ("eps_*AMT* tickers",
-        #      len(list(eps_amt_select.TICKER.unique())),
-        #      sorted(list(eps_amt_select.TICKER.unique())),
-        #      "****"
-        #      "eps_*ANT* ickers", len(list(eps_ant_select.TICKER.unique())),
-        #      sorted(list(eps_ant_select.TICKER.unique()))))
+            set(list(eps_amt_select.TICKER.unique()) +
+                list(eps_ant_select.TICKER.unique()) +
+                list(eps_oc_select.TICKER.unique())
+                )
+        )
         logging.info(("unique_entry_tickers", len(unique_entry_tickers), unique_entry_tickers))
         unique_entry = feed[feed["TICKER"].map(lambda x: x in unique_entry_tickers)][
             ["TICKER", "DATE", "CLOSE", "AMT"]]
