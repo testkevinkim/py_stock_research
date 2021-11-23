@@ -17,7 +17,7 @@ log_path = os.path.join(root_path, "{}kr_eps_change.log".format("test_" if overr
 email_path = os.path.join(root_path, "gmail.json")
 universe_max_page = 6 if override else 6
 eps_fy = 2
-
+esp_only_flag = True
 
 if override:
     first_snapshot_time = utils.local_time(tz_name)

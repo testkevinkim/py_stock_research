@@ -167,14 +167,17 @@ def calculate_ant_portion(gigan_wein):
     return gigan_wein_comb[["TICKER", "ANT_SUM_PORTION", "ANT_SUM"]]
 
 
-def rank_then_select(dt, first_feature, second_feature, entry_cnt_var, first_asc=True, second_asc=True):
+def rank_then_select(dt, first_feature, second_feature, entry_cnt_var, first_asc=True, second_asc=True,
+                     first_multiple=2, second_multiple=1):
     feature_1_filtered = dt.copy(True).dropna()
     feature_1_filtered["{}_RANK".format(first_feature)] = feature_1_filtered[first_feature].rank(
         method="first", ascending=first_asc)
-    feature_1_filtered = feature_1_filtered.query("{}_RANK <= {}".format(first_feature, str(2 * entry_cnt_var)))
+    feature_1_filtered = feature_1_filtered.query(
+        "{}_RANK <= {}".format(first_feature, str(first_multiple * entry_cnt_var)))
     feature_1_filtered["{}_RANK".format(second_feature)] = feature_1_filtered[second_feature].rank(
         method="first", ascending=second_asc)
-    feature_2_filtered = feature_1_filtered.query("{}_RANK <= {}".format(second_feature, str(1 * entry_cnt_var)))
+    feature_2_filtered = feature_1_filtered.query(
+        "{}_RANK <= {}".format(second_feature, str(second_multiple * entry_cnt_var)))
     feature_2_filtered["IDEA"] = first_feature + "/" + second_feature
     return feature_2_filtered[["TICKER", "IDEA"]]
 
@@ -188,43 +191,60 @@ def main(configs):
         # collect consensus
         consensus = get_all_eps_change(universe, configs.eps_fy)
         consensus = consensus[["TICKER", "EPS_CHG"]]
-        # collect gigan wein
-        start_time_gigan_wein = datetime.utcnow()
-        gigan_wein_p20 = get_all_wein_gigan(universe)
-        ant_result = calculate_ant_portion(gigan_wein_p20)[["TICKER", "ANT_SUM_PORTION"]]
-        logging.info(("gigan wein download run time:", datetime.utcnow() - start_time_gigan_wein))
+
         # collect realtime price
         feed = utils.kr_realtime_feed(universe)
         feed["AMT"] = feed["CLOSE"] * feed["VOLUME"] / 10 ** 8
-        feed["OC"] = feed["OPEN"]/feed["CLOSE"]-1
+        feed["OC"] = feed["OPEN"] / feed["CLOSE"] - 1
         old_feed_cnt = len(feed.TICKER.unique())
         feed = feed.query("AMT >= {}".format(str(configs.min_amt)))
         feed = feed.query("CLOSE >= {}".format(str(configs.min_face)))
         logging.info("feed reduced from {} to {} because of min_amt, min_face".format(str(old_feed_cnt), str(len(
             feed.TICKER.unique()))))
-        # feature rank -> select entry -> unique entry candidates
-        # logging.info(("feed", feed.tail(), "consensus", consensus.tail(), "ant_result", ant_result.tail()))
-        eps_amt = feed.merge(consensus, on="TICKER", how="inner")
-        # logging.info(("eps_amt", eps_amt.dtypes, eps_amt.shape, eps_amt.tail()))
-        eps_amt_select = rank_then_select(eps_amt.copy(True), "EPS_CHG", "AMT", configs.entry_cnt_per_idea, False, True)
-        # up EPS, small amt
 
-        eps_ant = consensus.merge(ant_result, on="TICKER", how="inner")
-        # logging.info(("eps_ant", eps_ant.dtypes, eps_ant.shape, eps_ant.tail()))
-        eps_ant_select = rank_then_select(eps_ant.copy(True), "EPS_CHG", "ANT_SUM_PORTION", configs.entry_cnt_per_idea,
-                                          False,
-                                          False)
-        # up EPS, large ant
-        eps_oc = feed.merge(consensus, on="TICKER", how="inner")
-        eps_oc_select = rank_then_select(eps_oc.copy(True), "EPS_CHG", "OC", configs.entry_cnt_per_idea, False, True)
-        # up EPS, small amt
+        if not configs.esp_only_flag:
+            # collect gigan wein
+            start_time_gigan_wein = datetime.utcnow()
+            gigan_wein_p20 = get_all_wein_gigan(universe)
+            ant_result = calculate_ant_portion(gigan_wein_p20)[["TICKER", "ANT_SUM_PORTION"]]
+            logging.info(("gigan wein download run time:", datetime.utcnow() - start_time_gigan_wein))
 
-        unique_entry_tickers = list(
-            set(list(eps_amt_select.TICKER.unique()) +
-                list(eps_ant_select.TICKER.unique()) +
-                list(eps_oc_select.TICKER.unique())
-                )
-        )
+            # feature rank -> select entry -> unique entry candidates
+            eps_amt = feed.merge(consensus, on="TICKER", how="inner")
+            eps_amt_select = rank_then_select(eps_amt.copy(True), "EPS_CHG", "AMT", configs.entry_cnt_per_idea, False,
+                                              True)
+            # up EPS, small amt
+
+            eps_ant = consensus.merge(ant_result, on="TICKER", how="inner")
+            eps_ant_select = rank_then_select(eps_ant.copy(True), "EPS_CHG", "ANT_SUM_PORTION",
+                                              configs.entry_cnt_per_idea,
+                                              False,
+                                              False)
+            # up EPS, large ant
+            eps_oc = feed.merge(consensus, on="TICKER", how="inner")
+            eps_oc_select = rank_then_select(eps_oc.copy(True), "EPS_CHG", "OC", configs.entry_cnt_per_idea, False,
+                                             True)
+            # up EPS, low oc
+            unique_entry_tickers = list(
+                set(list(eps_amt_select.TICKER.unique()) +
+                    list(eps_ant_select.TICKER.unique()) +
+                    list(eps_oc_select.TICKER.unique())
+                    )
+            )
+            logging.info("entry - combined conditions")
+
+        else: # eps only
+            eps_only = feed.merge(consensus, on="TICKER", how="inner")
+            eps_only_select = rank_then_select(eps_only.copy(True), "EPS_CHG", "AMT", configs.entry_cnt_per_idea, False,
+                                               True, 1, 1)
+            unique_entry_tickers = list(eps_only_select.TICKER.unique())
+            logging.info("entry - EPS CHG up only")
+            # up EPS only
+
+
+
+
+
         logging.info(("unique_entry_tickers", len(unique_entry_tickers), unique_entry_tickers))
         unique_entry = feed[feed["TICKER"].map(lambda x: x in unique_entry_tickers)][
             ["TICKER", "DATE", "CLOSE", "AMT"]]
