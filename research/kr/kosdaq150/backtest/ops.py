@@ -6,13 +6,14 @@
 
 # marketcap, EPS change 1 month (FY1, FY2), amt, face
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
+# from selenium import webdriver
+# from selenium.webdriver.common.by import By
+# from selenium.webdriver.chrome.service import Service
 import pandas as pd
 import requests
 import logging
 from research.kr.utils import marketcap_dataprep, unadj_day_price_dataprep
+import json
 
 
 def get_ticker_name(parsed_str):
@@ -72,6 +73,25 @@ def get_past_12_month_consensus(ticker, fy):
     return comb
 
 
+def get_past_12_month_earings(ticker, fy_value):
+    url = "https://comp.fnguide.com/SVO2/json/chart/07_02/chart_A{}_D_fy{}.json".format(str(ticker).zfill(6),
+                                                                                        str(fy_value))
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+
+    return json.loads(requests.get(url, headers=headers).text.encode().decode('utf-8-sig'))["CHART"]
+
+
+def get_past_12_month_earings_dataframe(ticker, fy_value):
+    dict = get_past_12_month_earings(ticker, fy_value)
+    comb = pd.DataFrame(dict)
+    comb["YRMO"] = comb["STD_DT"].map(lambda x: int(x.replace("/", "")))
+    comb["CONSENSUS"] = comb["EPS"].map(lambda x: float(x.replace(",", "")))
+    comb["FY"] = fy_value
+    comb["TICKER"] = str(ticker).zfill(6)
+    return comb
+
+
 def get_all_consensus(universe, fy):
     logging.info(fy)
     results = []
@@ -79,7 +99,8 @@ def get_all_consensus(universe, fy):
     for i, t in enumerate(universe):
 
         try:
-            temp = get_past_12_month_consensus(t, fy)
+            # temp = get_past_12_month_consensus(t, fy) # from selenium
+            temp = get_past_12_month_earings_dataframe(t, fy)  # from api directly
             if temp.shape[0] > 0:
                 results.append(temp)
                 logging.info("{}, {} consensus downloaded".format(str(i), t))

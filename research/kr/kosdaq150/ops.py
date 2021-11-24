@@ -182,6 +182,40 @@ def rank_then_select(dt, first_feature, second_feature, entry_cnt_var, first_asc
     return feature_2_filtered[["TICKER", "IDEA"]]
 
 
+def get_recent_earnings(ticker, annual_flag=True):
+    """
+
+    :param ticker:
+    :param annual_flag: True -> annual, False -> qtr
+    :return:
+    """
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+
+    if annual_flag:
+        json_url = "https://comp.fnguide.com/SVO2/json/data/01_06/01_A{}_q_d.json".format(str(ticker).zfill(6))
+    else:
+        json_url = "https://comp.fnguide.com/SVO2/json/data/01_06/01_A{}_a_d.json".format(str(ticker).zfill(6))
+    return json.loads(requests.get(json_url, headers=headers).text.encode().decode('utf-8-sig'))
+
+
+def get_past_12_month_earings(ticker, fy_value):
+    url = "https://comp.fnguide.com/SVO2/json/chart/07_02/chart_A{}_D_fy{}.json".format(str(ticker).zfill(6),
+                                                                                        str(fy_value))
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+
+    return json.loads(requests.get(url, headers=headers).text.encode().decode('utf-8-sig'))["CHART"]
+
+
+def get_analyst_forecast(ticker):
+    url = "http://comp.fnguide.com/SVO2/json/data/01_06/03_A{}.json".format(str(ticker).zfill(6))
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+
+    return json.loads(requests.get(url, headers=headers).text.encode().decode('utf-8-sig'))["comp"]
+
+
 def main(configs):
     logging.info("config override = {}".format("TRUE" if configs.override else "FALSE"))
     try:
@@ -233,17 +267,13 @@ def main(configs):
             )
             logging.info("entry - combined conditions")
 
-        else: # eps only
+        else:  # eps only
             eps_only = feed.merge(consensus, on="TICKER", how="inner")
             eps_only_select = rank_then_select(eps_only.copy(True), "EPS_CHG", "AMT", configs.entry_cnt_per_idea, False,
                                                True, 1, 1)
             unique_entry_tickers = list(eps_only_select.TICKER.unique())
             logging.info("entry - EPS CHG up only")
             # up EPS only
-
-
-
-
 
         logging.info(("unique_entry_tickers", len(unique_entry_tickers), unique_entry_tickers))
         unique_entry = feed[feed["TICKER"].map(lambda x: x in unique_entry_tickers)][
