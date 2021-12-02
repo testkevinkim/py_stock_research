@@ -108,3 +108,5 @@ def test_get_adj_unadj_day_price():
         lambda x: pd.to_datetime(x, format="%Y-%m-%d").year * 100 + pd.to_datetime(x, format="%Y-%m-%d").month in [
             202103, 201803, 201804])])
     logging.info(actual.dtypes)
+
+

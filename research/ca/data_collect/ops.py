@@ -185,7 +185,6 @@ def reduce_entry(entry_var, report_entry_cnt):
     logging.info(("before apply report entry cnt filter,", entry_var.shape[0]))
     entry_var = entry_var.query("ask_price_down_rank <= {}".format(str(report_entry_cnt)))
     logging.info(("after apply report entry cnt filter,", entry_var.shape[0]))
-
     return entry_var
 
 
@@ -232,7 +231,6 @@ def main(configs):
             entry_pre["askPrice"] = pd.to_numeric(entry_pre["askPrice"])
             entry_pre["askSize"] = pd.to_numeric(entry_pre["askSize"])
             entry_pre["lastTradePriceTrHrs"] = pd.to_numeric(entry_pre["lastTradePriceTrHrs"])
-
             entry = reduce_entry(entry_pre, configs.report_entry_cnt)  # to reduce entry size for report
             logging.info(("entry dtypes", entry.dtypes))
 

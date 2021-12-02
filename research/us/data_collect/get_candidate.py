@@ -3,7 +3,7 @@ import random
 # run at 17:00 -> capture price, calculate price drop, reduce candidates -> capture bid/ask of the candidates
 # if entry exists, calculate gain -> build report -> send email
 import pandas as pd
-
+import numpy as np
 from research.us.data_collect import bid_ask_collect, config
 import logging
 from rank_selection_main import utils
@@ -64,7 +64,6 @@ def reduce_entry(entry_var, report_entry_cnt):
     logging.info(("before apply report entry cnt filter,", entry_var.shape[0]))
     entry_var = entry_var.query("ask_price_down_rank <= {}".format(str(report_entry_cnt)))
     logging.info(("after apply report entry cnt filter,", entry_var.shape[0]))
-
     return entry_var
 
 
@@ -123,11 +122,17 @@ def main(configs):
             if len(entry_dates) >= 3:
                 history = us_yahoo_history.get_yahoo_history(entry_universe, entry_start_date,
                                                              utils.local_date(configs.tz_name))
+                history.to_json(configs.history_path)
+                logging.info("history saved to {}".format(configs.history_path))
                 history_reduced = history[["TICKER", "DATE", "OPEN"]]
                 entry_reduced = entry[["symbol", "date", "askPrice"]]
                 entry_reduced = entry_reduced.rename(
                     columns={"symbol": "TICKER", "date": "DATE", "askPrice": "ENTRY_PRICE"})
                 report = utils.build_gain_report(entry_reduced, history_reduced, configs.exit_ndays)
+                report["GM_AFTER_FEE"] = report["GM"].map(lambda x: x - configs.fee_perc)
+                report["GM_AFTER_FEE_NORM"] = report["GM_AFTER_FEE"].map(lambda x: x / configs.exit_ndays + 1)
+                cr = np.array(list(report.GM_AFTER_FEE_NORM)).cumprod()
+                report["CR"] = cr
                 logging.info("report built")
                 logging.info(report.head().to_string())
                 report.to_json(configs.report_path)

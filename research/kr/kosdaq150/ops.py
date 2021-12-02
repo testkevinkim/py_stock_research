@@ -13,6 +13,9 @@ from rank_selection_main import utils
 email_cred = utils.read_json_to_dict(config.email_path)
 config.email_cred = email_cred  # for unittest - main
 
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+
 
 def save_entry(path, df) -> pd.DataFrame:
     if os.path.exists(path):
@@ -112,9 +115,6 @@ def test_get_all_eps_change():
 def get_wein_gigan(ticker, page_n):
     url_template = "https://finance.naver.com/item/frgn.naver?code={}&page={}"
     url = url_template.format(str(ticker), str(page_n))
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-
     htmltext = requests.get(url, headers=headers).text
     dfs = pd.read_html(htmltext)
     df = dfs[2]
@@ -184,36 +184,102 @@ def rank_then_select(dt, first_feature, second_feature, entry_cnt_var, first_asc
 
 def get_recent_earnings(ticker, annual_flag=True):
     """
-
     :param ticker:
     :param annual_flag: True -> annual, False -> qtr
     :return:
     """
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-
     if annual_flag:
-        json_url = "https://comp.fnguide.com/SVO2/json/data/01_06/01_A{}_q_d.json".format(str(ticker).zfill(6))
-    else:
         json_url = "https://comp.fnguide.com/SVO2/json/data/01_06/01_A{}_a_d.json".format(str(ticker).zfill(6))
-    return json.loads(requests.get(json_url, headers=headers).text.encode().decode('utf-8-sig'))
+    else:
+        json_url = "https://comp.fnguide.com/SVO2/json/data/01_06/01_A{}_q_d.json".format(str(ticker).zfill(6))
+    result_dict = json.loads(requests.get(json_url, headers=headers).text.encode().decode('utf-8-sig'))["comp"]
+    yrmo = sorted(
+        {k: int(v.replace("/", "")[:6]) for k, v in [x for x in result_dict if x["SORT_ORDER"] == "0"][0].items() if
+         "D_" in k}.items(),
+        key=lambda x: x[1])
+
+    keys = [x[0] for x in yrmo]
+    yrmo = [x[1] for x in yrmo]
+
+    eps = {k: float(0 if v == "" else v.replace(",", "")) for k, v in
+           [x for x in result_dict if "EPS" in x["ACCOUNT_NM"]][0].items() if
+           "D_" in k}
+    eps_value = []
+    for k in keys:
+        eps_value.append(eps[k])
+
+    eps = eps_value
+    return pd.DataFrame(zip(yrmo, eps), columns=["YRMO", "EPS"])
 
 
 def get_past_12_month_earings(ticker, fy_value):
     url = "https://comp.fnguide.com/SVO2/json/chart/07_02/chart_A{}_D_fy{}.json".format(str(ticker).zfill(6),
                                                                                         str(fy_value))
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-
     return json.loads(requests.get(url, headers=headers).text.encode().decode('utf-8-sig'))["CHART"]
 
 
 def get_analyst_forecast(ticker):
     url = "http://comp.fnguide.com/SVO2/json/data/01_06/03_A{}.json".format(str(ticker).zfill(6))
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-
     return json.loads(requests.get(url, headers=headers).text.encode().decode('utf-8-sig'))["comp"]
+
+
+def get_eps_from_itooza(ticker, ttm_flag=True):
+    url = "https://search.itooza.com/search.htm?seName={}&jl=&search_ck=&sm=&sd=2021-10-26&ed=2021-11-25&ds_de=&page=&cpv=#indexTable1".format(
+        ticker)
+    dfs = pd.read_html(url)
+    if ttm_flag:
+        df_id = 2
+        type_str = "TTM"
+    else:
+        df_id = 3
+        type_str = "YEAR"
+
+    yrmo = [("20" + x.split(".")[0]) + "-" + x.split(".")[1][:2] for x in list(dfs[df_id].columns)[1:]]
+    eps = list(dfs[df_id].iloc[0,])[1:]
+    yrmo_eps = pd.DataFrame(zip(yrmo, eps), columns=["YRMO", "EPS"])
+    yrmo_eps["TYPE"] = type_str
+    yrmo_eps["TICKER"] = str(ticker).zfill(6)
+    yrmo_eps = yrmo_eps.dropna()
+    return yrmo_eps
+
+
+def save_past_eps(ticker, rootpath):
+    result = None
+    try:
+        temp = get_recent_earnings(ticker, True)
+        temp["TICKER"] = ticker
+        temp.to_json(os.path.join(rootpath, "past_eps_{}.json".format(str(ticker))))
+        print("{} saved".format(ticker))
+    except Exception as e:
+        print(("{} skipped - ".format(ticker), str(e)))
+        result = ticker
+    return result
+
+
+def save_past_price(ticker, rootpath, pdays):
+    result = None
+    try:
+        temp = unadj_day_price_dataprep.get_price_from_daum(ticker, pdays)
+        temp.to_json(os.path.join(rootpath, "past_price_{}.json".format(str(ticker))))
+        print("{} price saved".format(ticker))
+    except Exception as e:
+        print(("{} skipped - ".format(ticker), str(e)))
+        result = ticker
+    return result
+
+
+def save_past_eps_itooza(ticker, rootpath):
+    result = None
+    try:
+        temp_ttm = get_eps_from_itooza(ticker, True)
+        temp_year = get_eps_from_itooza(ticker, False)
+        temp = pd.concat([temp_ttm, temp_year], ignore_index=True)
+        temp.to_json(os.path.join(rootpath, "past_eps_itooza_{}.json".format(str(ticker))))
+        print("{} eps itooza saved".format(ticker))
+    except Exception as e:
+        print(("{} skipped - ".format(ticker), str(e)))
+        result = ticker
+    return result
 
 
 def main(configs):
