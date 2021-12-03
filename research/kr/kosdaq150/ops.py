@@ -26,6 +26,7 @@ def save_entry(path, df) -> pd.DataFrame:
         new_df = df
         logging.info(("init entry saved, size = ", new_df.shape[0]))
     new_df.to_json(path)
+    new_df["TICKER"] = new_df["TICKER"].map(lambda x: str(x).zfill(6))
     return new_df
 
 
