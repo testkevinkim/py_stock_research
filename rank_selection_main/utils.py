@@ -109,7 +109,7 @@ def send_status_email(subject, cred_dict, text="nothing"):
     return status
 
 
-def send_email_with_df(subject, cred_dict, df):
+def send_email_with_df(subject, cred_dict, df, additional_sent_to=None):
     status = "sent"
     try:
         send_from = "kevin.keunyoung.kim@gmail.com"
@@ -139,6 +139,8 @@ def send_email_with_df(subject, cred_dict, df):
         with smtplib.SMTP_SSL(host=server, port=port, context=smtp) as server:
             server.login(user=send_from, password=passwd)
             server.sendmail(from_addr=send_from, to_addrs=send_to, msg=msg.as_string())
+            if additional_sent_to is not None:
+                server.sendmail(from_addr=send_from, to_addrs=additional_sent_to, msg=msg.as_string())
         server.close()
         print("email with dataframe sent")
     except Exception as e:

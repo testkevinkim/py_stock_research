@@ -33,3 +33,5 @@ exit_ndays = 10
 fee_perc = 0.004
 min_amt = 2
 min_face = 1000
+
+mother_email = "kimyoungkim678@gmail.com"
